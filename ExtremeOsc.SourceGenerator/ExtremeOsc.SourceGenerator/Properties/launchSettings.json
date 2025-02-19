@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ExtremeOsc.SourceGenerator": {
+      "commandName": "Project"
+    },
+    "Debug": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\TestApp\\TestApp.csproj"
+    }
+  }
+}
