@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -15,7 +16,7 @@ namespace ExtremeOsc
         private int bufferSize = -1;
         private UdpClient udpClient = null;
         private CancellationToken cancellationToken;
-        private NativeArray<byte> buffer;
+        private byte[] buffer;
         private readonly HashSet<IOscReceivable> receivers = new HashSet<IOscReceivable>();
 
         public OscServer(int port, int bufferSize = 4096)
@@ -23,7 +24,7 @@ namespace ExtremeOsc
             this.port = port;
             this.bufferSize = bufferSize;
             this.udpClient = new UdpClient(port);
-            this.buffer = new NativeArray<byte>(bufferSize, Allocator.Persistent);
+            this.buffer = new byte[bufferSize];
         }
 
         public void Open(CancellationToken cancellationToken = default)
@@ -44,7 +45,7 @@ namespace ExtremeOsc
 
             this.udpClient.Close();
             this.udpClient = null;
-            this.buffer.Dispose();
+            this.buffer = null;
             this.receivers.Clear();
         }
 

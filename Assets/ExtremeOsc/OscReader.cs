@@ -10,10 +10,11 @@ namespace ExtremeOsc
 
     public static class OscReader
     {
-        public static string ReadString(NativeArray<byte> buffer, int offset)
+        public static string ReadString(byte[] buffer, ref int offset)
         {
             // find null terminator
             int length = 0;
+            int startOffset = offset;
 
             for (int i = offset; i < buffer.Length; i++)
             {
@@ -24,74 +25,135 @@ namespace ExtremeOsc
                 length++;
             }
 
-            return Encoding.UTF8.GetString(buffer.AsReadOnlySpan().Slice(offset, length));
+            string value = Encoding.UTF8.GetString(buffer.AsSpan(startOffset, length));
+
+            offset += Utils.AlignBytes4(length + 1);
+
+            return value;
         }
 
-        public static bool IsBundle(NativeArray<byte> buffer, int offset)
+        public static bool IsBundle(byte[] buffer, ref int offset)
         {
-            return buffer.AsReadOnlySpan().Slice(offset, 8).SequenceEqual(TagType.BundleBytes);
+            var value = buffer.AsSpan(offset, 8).SequenceEqual(TagType.BytesBundle);
+            offset += 8;
+
+            return value;
         }
 
-        public static int ReadInt32(NativeArray<byte> buffer, int offset)
+        public static int ReadInt32(byte[] buffer, ref int offset)
         {
             // big endian -> little endian
-            return (buffer[offset + 0] << 24) | (buffer[offset + 1] << 16) | (buffer[offset + 2] << 8) | buffer[offset + 3];
+            int value = 0;
+
+            unsafe
+            {
+                byte* ptr = (byte*)&value;
+                for (int i = 0; i < 4; i++)
+                {
+                    ptr[3 - i] = buffer[offset + i];
+                }
+            }
+
+            offset += 4;
+
+            return value;
         }
 
-        public static float ReadFloat(NativeArray<byte> buffer, int offset)
+        public static long ReadInt64(byte[] buffer, ref int offset)
         {
-            int i = ReadInt32(buffer, offset);
-            var union = new FloatIntUnion { i = i };
-            return union.f;
+            long value = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                value = (value << 8) | buffer[offset + i];
+            }
+
+            offset += 8;
+            return value;
         }
 
-        public static byte[] ReadBlob(NativeArray<byte> buffer, int offset)
+        public static float ReadFloat(byte[] buffer, ref int offset)
         {
-            int length = ReadInt32(buffer, offset);
-            return buffer.AsSpan().Slice(offset + 4, length).ToArray();
+            float value = 0;
+
+            unsafe
+            {
+                byte* ptr = (byte*)&value;
+                ptr[0] = buffer[offset + 3];
+                ptr[1] = buffer[offset + 2];
+                ptr[2] = buffer[offset + 1];
+                ptr[3] = buffer[offset + 0];
+            }
+
+            offset += 4;
+
+            return value;
         }
 
-        public static ulong ReadULong(NativeArray<byte> buffer, int offset)
+        public static byte[] ReadBlob(byte[] buffer, ref int offset)
+        {
+            int length = ReadInt32(buffer, ref offset);
+
+            byte[] value = buffer.AsSpan().Slice(offset, length).ToArray();
+            offset += Utils.AlignBytes4(length + 1);
+            
+            return value;
+        }
+
+        public static ulong ReadULong(byte[] buffer, ref int offset)
         {
             ulong value = 0;
             for (int i = 0; i < 8; i++)
             {
                 value = (value << 8) | buffer[offset + i];
             }
+
+            offset += 8;
+
             return value;
         }
 
-        public static double ReadDouble(NativeArray<byte> buffer, int offset)
+        public static double ReadDouble(byte[] buffer, ref int offset)
         {
-            return (double)(
-                buffer[offset + 0] << 56 |
-                buffer[offset + 1] << 48 |
-                buffer[offset + 2] << 40 |
-                buffer[offset + 3] << 32 |
-                buffer[offset + 4] << 24 |
-                buffer[offset + 5] << 16 |
-                buffer[offset + 6] << 8 |
-                buffer[offset + 7] << 0
-                );
+            double value = 0;
+
+            unsafe
+            {
+                byte* ptr = (byte*)&value;
+                for (int i = 0; i < 8; i++)
+                {
+                    ptr[i] = buffer[offset + (7 - i)];
+                }
+            }
+
+            offset += 8;
+
+            return value;
         }
 
-        public static Color32 ReadColor32(NativeArray<byte> buffer, int offset)
+        public static Color32 ReadColor32(byte[] buffer, ref int offset)
         {
             byte r = buffer[offset + 0];
             byte g = buffer[offset + 1];
             byte b = buffer[offset + 2];
             byte a = buffer[offset + 3];
+
+            offset += 4;
+
             return new Color32(r, g, b, a);
         }
 
-        public static char ReadChar(NativeArray<byte> buffer, int offset)
+        public static char ReadChar(byte[] buffer, ref int offset)
         {
             // 32bit -> 8bit
-            return (char)buffer[offset + 3];
+            char value = (char)buffer[offset + 3];
+            offset += 4;
+            return value;
         }
 
-        public static TimeTag ReadTimeTag(NativeArray<byte> buffer, int offset) => ReadULong(buffer, offset);
+        public static bool ReadBoolean(byte[] buffer, int offset) => buffer[offset] == TagType.True;
+
+        public static TimeTag ReadTimeTag(byte[] buffer, ref int offset) => ReadULong(buffer, ref offset);
     
-        public static int ReadMidi(NativeArray<byte> buffer, int offset) => ReadInt32(buffer, offset);
+        public static int ReadMidi(byte[] buffer, ref int offset) => ReadInt32(buffer, ref offset);
     }
 }

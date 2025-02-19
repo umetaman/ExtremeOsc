@@ -5,11 +5,13 @@ using UnityEngine;
 
 namespace ExtremeOsc.Annotations
 {
-    public class OscPacket : Attribute
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
+    public class OscPackable : Attribute
     {
 
     }
 
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
     public class OscElementAt : Attribute
     {
         public int Index { get; private set; }
@@ -20,6 +22,7 @@ namespace ExtremeOsc.Annotations
         }
     }
 
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class OscCallback : Attribute
     {
         public string Address { get; private set; }
