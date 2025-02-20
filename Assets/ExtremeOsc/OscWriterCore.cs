@@ -32,6 +32,23 @@ namespace ExtremeOsc
             }
         }
 
+        public static void WriteString(byte[] buffer, byte[] value, ref int offset)
+        {
+            var length = value.Length;
+            for(int i = 0; i < length; i++)
+            {
+                buffer[offset] = value[i];
+                offset++;
+            }
+
+            int aligned = Utils.AlignBytes4(length + 1);
+            for (int i = length; i < aligned; i++)
+            {
+                buffer[offset] = 0;
+                offset++;
+            }
+        }
+
         public static void WriteStringUtf8(byte[] buffer, string value, ref int offset)
         {
             unsafe

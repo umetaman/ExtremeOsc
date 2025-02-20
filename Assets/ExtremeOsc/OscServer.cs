@@ -77,7 +77,7 @@ namespace ExtremeOsc
                     {
                         foreach(var receiver in receivers)
                         {
-                            receiver.ReceiveOscData(buffer);
+                            receiver.ReceiveOscPacket(buffer);
                         }
                     }
                 }
