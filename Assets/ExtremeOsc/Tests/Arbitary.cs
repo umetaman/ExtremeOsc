@@ -18,9 +18,29 @@ namespace ExtremeOsc.Tests
             TagType.Char,
             TagType.True,
             TagType.False,
+            TagType.Infinitum,
+            TagType.Nil,
+            TagType.Color32,
+            TagType.TimeTag,
         };
         public const string Ascii = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         public const string Japanase = "つれづれなるまゝに、日暮らし、硯にむかひて、心にうつりゆくよしなし事を、そこはかとなく書きつくれば、あやしうこそものぐるほしけれ。";
+
+        public static string GetRandomAddress(int minLength = 1, int maxLength = 10, int slashCount = 1)
+        {
+            string address = "/";
+
+            for(int i = 0; i < slashCount; i++)
+            {
+                address += GetRandomStringAscii(UnityEngine.Random.Range(minLength, maxLength));
+
+                if (i < slashCount - 1)
+                {
+                    address += "/";
+                }
+            }
+            return address;
+        }
 
         public static object[] GetRandomObjects(int count)
         {
@@ -58,6 +78,18 @@ namespace ExtremeOsc.Tests
                         break;
                     case TagType.False:
                         values[index] = false;
+                        break;
+                    case TagType.Infinitum:
+                        values[index] = Infinitum.Value;
+                        break;
+                    case TagType.Nil:
+                        values[index] = Nil.Value;
+                        break;
+                    case TagType.Color32:
+                        values[index] = GetRandomColor32();
+                        break;
+                    case TagType.TimeTag:
+                        values[index] = GetRandomULong();
                         break;
                 }
             }
@@ -97,6 +129,18 @@ namespace ExtremeOsc.Tests
                     case bool @bool:
                         tagTypes += @bool ? "T" : "F";
                         break;
+                    case Infinitum _:
+                        tagTypes += "I";
+                        break;
+                    case Nil _:
+                        tagTypes += "N";
+                        break;
+                    case Color32 _:
+                        tagTypes += "r";
+                        break;
+                    case ulong _:
+                        tagTypes += "t";
+                        break;
                 }
             }
 
@@ -132,13 +176,6 @@ namespace ExtremeOsc.Tests
 
         public static string GetRandomStringAscii(int length)
         {
-            //string str = "ajshakjshdlakjhsdlajhflajhdfljahsldfkjhasldkjhflasjfhdlajh";
-            ////for (int i = 0; i < length; i++)
-            ////{
-            ////    str += (char)Random.Range(1, 255);
-            ////}
-            //return str;
-
             // ASCII
             string str = "";
 
@@ -190,6 +227,31 @@ namespace ExtremeOsc.Tests
         public static bool GetRandomBool()
         {
             return Random.Range(0, 2) == 0;
+        }
+
+        public static Color32 GetRandomColor32()
+        {
+            return new Color32(
+                (byte)Random.Range(0, 255),
+                (byte)Random.Range(0, 255),
+                (byte)Random.Range(0, 255),
+                (byte)Random.Range(0, 255));
+        }
+
+        public static ulong GetRandomULong()
+        {
+            ulong value = 0;
+
+            unsafe
+            {
+                byte* ptr = (byte*)&value;
+                for (int i = 0; i < 8; i++)
+                {
+                    ptr[7 - i] = (byte)Random.Range(0, 255);
+                }
+            }
+
+            return value;
         }
     }
 }

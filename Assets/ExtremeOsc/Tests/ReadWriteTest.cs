@@ -10,13 +10,17 @@ namespace ExtremeOsc.Tests
 {
     public class ReadWriteTest
     {
-        public void Write(byte[] buffer, object[] values)
+        public void Write(byte[] buffer, string address, object[] values)
         {
             var tagTypes = Arbitary.GetTagTypes(values);
-            Debug.Log($"ReadWriteTest::Write: {tagTypes}");
+            Debug.Log($"ReadWriteTest::Write: {address} {tagTypes}");
 
-            int offsetTagTypes = 1;
+            int offsetTagTypes = 0;
             int offset = 0;
+
+            OscWriter.WriteString(buffer, address, ref offset);
+
+            offsetTagTypes += offset + 1;
 
             OscWriter.WriteString(buffer, tagTypes, ref offset);
 
@@ -50,19 +54,34 @@ namespace ExtremeOsc.Tests
                     case bool @bool:
                         OscWriter.WriteBoolean(buffer, @bool, offsetTagTypes);
                         break;
+                    case Infinitum _:
+                        OscWriter.WriteInfinitum(buffer, offsetTagTypes);
+                        break;
+                    case Nil _:
+                        OscWriter.WriteNil(buffer, offsetTagTypes);
+                        break;
+                    case Color32 color32:
+                        OscWriter.WriteColor32(buffer, color32, ref offset);
+                        break;
+                    case ulong @ulong:
+                        OscWriter.WriteTimeTag(buffer, @ulong, ref offset);
+                        break;
                 }
 
                 offsetTagTypes++;
             }
         }
 
-        public object[] Read(byte[] buffer)
+        public (string, object[]) Read(byte[] buffer)
         {
             int offsetTagTypes = 0;
             int offset = 0;
 
+            string address = OscReader.ReadString(buffer, ref offset);
+            offsetTagTypes += offset;
+
             string tagTypes = OscReader.ReadString(buffer, ref offset);
-            Debug.Log($"ReadWriteTest::Write: {tagTypes}");
+            Debug.Log($"ReadWriteTest::Read: {address} {tagTypes}");
 
             var values = new List<object>();
 
@@ -97,11 +116,24 @@ namespace ExtremeOsc.Tests
                     case TagType.False:
                         values.Add(OscReader.ReadBoolean(buffer, offsetTagTypes));
                         break;
+                    case TagType.Infinitum:
+                        values.Add(OscReader.ReadInfinitum(buffer, offsetTagTypes));
+                        break;
+                    case TagType.Nil:
+                        values.Add(OscReader.ReadNil(buffer, offsetTagTypes));
+                        break;
+                    case TagType.Color32:
+                        values.Add(OscReader.ReadColor32(buffer, ref offset));
+                        break;
+                    case TagType.TimeTag:
+                        //values.Add(OscReader.ReadTimeTag(buffer, ref offset));
+                        values.Add(OscReader.ReadTimeTagAsULong(buffer, ref offset));
+                        break;
                 }
                 offsetTagTypes++;
             }
 
-            return values.ToArray();
+            return (address, values.ToArray());
         }
 
         [Test]
@@ -134,14 +166,17 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 100);
+                string address = Arbitary.GetRandomAddress();
 
                 var ints = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     ints[j] = Arbitary.GetRandomInt32();
                 }
-                Write(buffer, ints);
-                var readInts = Read(buffer);
+                Write(buffer, address, ints);
+                var (readAddress, readInts) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(ints, readInts);
             }
         }
@@ -154,13 +189,18 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 100);
+                string address = Arbitary.GetRandomAddress();
+                
                 var longs = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     longs[j] = Arbitary.GetRandomInt64();
                 }
-                Write(buffer, longs);
-                var readLongs = Read(buffer);
+
+                Write(buffer, address, longs);
+                var (readAddress, readLongs) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(longs, readLongs);
             }
         }
@@ -173,7 +213,8 @@ namespace ExtremeOsc.Tests
             for(int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 100);
-                
+                string address = Arbitary.GetRandomAddress();
+
                 var floats = new object[randomCount];
 
                 for (int j = 0; j < randomCount; j++)
@@ -181,10 +222,10 @@ namespace ExtremeOsc.Tests
                     floats[j] = Arbitary.GetRandomFloat();
                 }
 
-                Write(buffer, floats);
+                Write(buffer, address, floats);
+                var (readAddress, readFloats) = Read(buffer);
 
-                var readFloats = Read(buffer);
-
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(floats, readFloats);
             }
         }
@@ -197,6 +238,7 @@ namespace ExtremeOsc.Tests
             for(int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
 
                 var blobs = new object[randomCount];
 
@@ -205,10 +247,11 @@ namespace ExtremeOsc.Tests
                     blobs[j] = Arbitary.GetRandomBlob(UnityEngine.Random.Range(0, 100));
                 }
 
-                Write(buffer, blobs);
+                Write(buffer, address, blobs);
 
-                var readBlobs = Read(buffer);
+                var (readAddress, readBlobs) = Read(buffer);
 
+                Assert.AreEqual(readAddress, address);
                 Assert.IsTrue(blobs.Length == readBlobs.Length);
 
                 for(int j = 0; j < blobs.Length; j++)
@@ -232,13 +275,19 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 100);
+                string address = Arbitary.GetRandomAddress();
+
                 var doubles = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     doubles[j] = Arbitary.GetRandomDouble();
                 }
-                Write(buffer, doubles);
-                var readDoubles = Read(buffer);
+
+                Write(buffer, address, doubles);
+                
+                var (readAddress, readDoubles) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(doubles, readDoubles);
             }
         }
@@ -251,13 +300,18 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 100);
+                string address = Arbitary.GetRandomAddress();
+
                 var chars = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     chars[j] = Arbitary.GetRandomChar();
                 }
-                Write(buffer, chars);
-                var readChars = Read(buffer);
+                Write(buffer, address, chars);
+
+                var (readAddress, readChars) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(chars, readChars);
             }
         }
@@ -270,13 +324,18 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 100);
+                string address = Arbitary.GetRandomAddress();
+
                 var bools = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     bools[j] = Arbitary.GetRandomBool();
                 }
-                Write(buffer, bools);
-                var readBools = Read(buffer);
+
+                Write(buffer, address, bools);
+                var (readAddress, readBools) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(bools, readBools);
             }
         }
@@ -289,13 +348,18 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
+
                 var strings = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     strings[j] = Arbitary.GetRandomStringAscii(UnityEngine.Random.Range(1, 256));
                 }
-                Write(buffer, strings);
-                var readStrings = Read(buffer);
+
+                Write(buffer, address, strings);
+                var (readAddress, readStrings) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(strings, readStrings);
             }
         }
@@ -308,35 +372,154 @@ namespace ExtremeOsc.Tests
             for (int i = 0; i < 1000; i++)
             {
                 int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
+
                 var strings = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
                     strings[j] = Arbitary.GetRandomStringUtf8(UnityEngine.Random.Range(1, 256));
                 }
-                Write(buffer, strings);
-                var readStrings = Read(buffer);
+
+                Write(buffer, address, strings);
+                var (readAddress, readStrings) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(strings, readStrings);
+            }
+        }
+
+        [Test]
+        public void ReadWriteInfinitum()
+        {
+            var buffer = new byte[4096];
+
+            for (int i = 0; i < 1000; i++)
+            {
+                int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
+
+                var infinitums = new object[randomCount];
+                for (int j = 0; j < randomCount; j++)
+                {
+                    infinitums[j] = Infinitum.Value;
+                }
+
+                Write(buffer, address, infinitums);
+                var (readAddress, readInfinitums) = Read(buffer);
+
+                Assert.AreEqual(readAddress, address);
+                Assert.AreEqual(infinitums, readInfinitums);
+            }
+        }
+
+        [Test]
+        public void ReadWriteNil()
+        {
+            var buffer = new byte[4096];
+
+            for(int i = 0; i < 1000; i++)
+            {
+                int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
+
+                var nils = new object[randomCount];
+                for (int j = 0; j < randomCount; j++)
+                {
+                    nils[j] = Nil.Value;
+                }
+                
+                Write(buffer, address, nils);
+                var (readAddress, readNils) = Read(buffer);
+                
+                Assert.AreEqual(readAddress, address);
+                Assert.AreEqual(nils, readNils);
+            }
+        }
+
+        [Test]
+        public void ReadWriteColor32()
+        {
+            var buffer = new byte[4096];
+
+            for (int i = 0; i < 1000; i++)
+            {
+                int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
+
+                var colors = new object[randomCount];
+                for (int j = 0; j < randomCount; j++)
+                {
+                    colors[j] = Arbitary.GetRandomColor32();
+                }
+
+                Write(buffer, address, colors);
+                var (readAddress, readColors) = Read(buffer);
+                
+                Assert.AreEqual(readAddress, address);
+                Assert.AreEqual(colors, readColors);
+            }
+        }
+
+        [Test]
+        public void ReadWriteTimetag()
+        {
+            var buffer = new byte[4096];
+
+            for (int i = 0; i < 1000; i++)
+            {
+                int randomCount = UnityEngine.Random.Range(1, 10);
+                string address = Arbitary.GetRandomAddress();
+                
+                var timeTags = new object[randomCount];
+                for (int j = 0; j < randomCount; j++)
+                {
+                    timeTags[j] = Arbitary.GetRandomULong();
+                }
+                
+                Write(buffer, address, timeTags);
+                var (readAddress, readTimeTags) = Read(buffer);
+                
+                Assert.AreEqual(readAddress, address);
+                Assert.AreEqual(timeTags, readTimeTags);
+            }
+        }
+
+        [Test]
+        public void UlongNtpConvertion()
+        {
+            for(int i = 0; i < 1000; i++)
+            {
+                ulong a = Arbitary.GetRandomULong();
+                var unix_a = Utils.NtpToDateTime(a);
+                var ntp_a = Utils.DateTimeToNtp(unix_a);
+                var unix_b = Utils.NtpToDateTime(ntp_a);
+
+                Assert.AreEqual(unix_a, unix_b);
             }
         }
 
         [Test]
         public void ReadWrite()
         {
-            var buffer = new byte[4096*2];
+            var buffer = new byte[4096*8];
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 10000; i++)
             {
-                int randomCount = UnityEngine.Random.Range(1, 10);
+                int randomCount = UnityEngine.Random.Range(1, 20);
+                string address = Arbitary.GetRandomAddress();
+
                 string tagTypes = Arbitary.GetRandomTagTypes(randomCount);
 
                 var values = Arbitary.GetRandomObjects(randomCount);
+                Write(buffer, address, values);
 
-                Write(buffer, values);
+                var (readAddress, readValues) = Read(buffer);
 
-                var readValues = Read(buffer);
-
+                Assert.AreEqual(readAddress, address);
                 Assert.AreEqual(values, readValues);
             }
+
+            buffer = null;
         }
     }
 }

@@ -150,10 +150,54 @@ namespace ExtremeOsc
             return value;
         }
 
-        public static bool ReadBoolean(byte[] buffer, int offset) => buffer[offset] == TagType.True;
+        public static bool ReadBoolean(byte[] buffer, int offset)
+        {
+            if (buffer[offset] == TagType.True)
+            {
+                return true;
+            }
+            else if (buffer[offset] == TagType.False)
+            {
+                return false;
+            }
+            else
+            {
+                throw new Exception("Invalid boolean tag");
+            }
+        }
 
-        public static TimeTag ReadTimeTag(byte[] buffer, ref int offset) => ReadULong(buffer, ref offset);
+        public static Infinitum ReadInfinitum(byte[] buffer, int offset)
+        {
+            if(buffer[offset] == TagType.Infinitum)
+            {
+                return Infinitum.Value;
+            }
+            else
+            {
+                throw new Exception("Invalid infinitum tag");
+            }
+        }
+
+        public static Nil ReadNil(byte[] buffer, int offset)
+        {
+            if (buffer[offset] == TagType.Nil)
+            {
+                return Nil.Value;
+            }
+            else
+            {
+                throw new Exception("Invalid nil tag");
+            }
+        }
+
+        public static TimeTag ReadTimeTagAsULong(byte[] buffer, ref int offset) => ReadULong(buffer, ref offset);
     
+        public static DateTime ReadTimeTag(byte[] buffer, ref int offset)
+        {
+            var ntpTime = ReadULong(buffer, ref offset);
+            return Utils.NtpToDateTime(ntpTime);
+        }
+
         public static int ReadMidi(byte[] buffer, ref int offset) => ReadInt32(buffer, ref offset);
     }
 }

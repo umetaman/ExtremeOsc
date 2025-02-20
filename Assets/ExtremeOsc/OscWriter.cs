@@ -11,7 +11,7 @@ namespace ExtremeOsc
 {
     public static class OscWriter
     {
-        public static ulong NtpNow => Utils.UnixToNtp(DateTimeOffset.Now);
+        public static ulong NtpNow => Utils.DateTimeToNtp(DateTime.UtcNow);
         public static ulong NtpImmediate => 1;
 
         public static void WriteString(byte[] buffer, string value, ref int offset)
@@ -41,7 +41,10 @@ namespace ExtremeOsc
 
                 fixed (char* ptr = value)
                 {
-                    Encoding.UTF8.GetBytes(ptr, value.Length, span, byteCount);
+                    if (value.Length > 0)
+                    {
+                        Encoding.UTF8.GetBytes(ptr, value.Length, span, byteCount);
+                    }
                 }
 
                 for (int i = 0; i < byteCount; i++)
@@ -187,6 +190,16 @@ namespace ExtremeOsc
             buffer[offset] = Boolean(value);
         }
 
+        public static void WriteNil(byte[] buffer, int offset) => buffer[offset] = (byte)'N';
+
+        public static void WriteNil(byte[] buffer, Nil value, int offset) => WriteNil(buffer, offset);
+
+        public static void WriteInfinitum(byte[] buffer, int offset) => buffer[offset] = (byte)'I';
+
+        public static void WriteInfinitum(byte[] buffer, Infinitum value, int offset) => WriteInfinitum(buffer, offset);
+
+        public static void WriteTimeTag(byte[] buffer, DateTime dateTime, ref int offset) => WriteULong(buffer, Utils.DateTimeToNtp(dateTime), ref offset);
+        
         public static void WriteTimeTag(byte[] buffer, ulong value, ref int offset) => WriteULong(buffer, value, ref offset);
 
         public static void WriteMidi(byte[] buffer, int value, ref int offset) => WriteInt32(buffer, value, ref offset);

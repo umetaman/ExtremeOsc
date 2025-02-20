@@ -35,7 +35,7 @@ namespace ExtremeOsc
             value.Pack(buffer, ref offset);
             length += (offset - length);
 
-            udpClient.Client.Send(buffer.AsSpan(0, length));
+            udpClient.Client.Send(buffer, 0, length, SocketFlags.None);
         }
 
         public void Dispose()
