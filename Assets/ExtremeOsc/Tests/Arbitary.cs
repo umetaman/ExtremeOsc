@@ -19,6 +19,8 @@ namespace ExtremeOsc.Tests
             TagType.True,
             TagType.False,
         };
+        public const string Ascii = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        public const string Japanase = "つれづれなるまゝに、日暮らし、硯にむかひて、心にうつりゆくよしなし事を、そこはかとなく書きつくれば、あやしうこそものぐるほしけれ。";
 
         public static object[] GetRandomObjects(int count)
         {
@@ -40,7 +42,7 @@ namespace ExtremeOsc.Tests
                         values[index] = GetRandomFloat();
                         break;
                     case TagType.String:
-                        values[index] = GetRandomString(UnityEngine.Random.Range(0, 256));
+                        values[index] = GetRandomStringUtf8(UnityEngine.Random.Range(0, 256));
                         break;
                     case TagType.Blob:
                         values[index] = GetRandomBlob(UnityEngine.Random.Range(0, 1024));
@@ -128,7 +130,7 @@ namespace ExtremeOsc.Tests
             return Random.Range(float.MinValue, float.MaxValue);
         }
 
-        public static string GetRandomString(int length)
+        public static string GetRandomStringAscii(int length)
         {
             //string str = "ajshakjshdlakjhsdlajhflajhdfljahsldfkjhasldkjhflasjfhdlajh";
             ////for (int i = 0; i < length; i++)
@@ -138,13 +140,30 @@ namespace ExtremeOsc.Tests
             //return str;
 
             // ASCII
-            string str = "日本語";
+            string str = "";
 
-            //for (int i = 0; i < length; i++)
-            //{
-            //    str += (char)Random.Range(1, 255);
-            //}
+            for (int i = 0; i < length; i++)
+            {
+                str += Ascii[Random.Range(0, Ascii.Length)];
+            }
 
+            return str;
+        }
+
+        public static string GetRandomStringUtf8(int length)
+        {
+            string str = "";
+            for (int i = 0; i < length; i++)
+            {
+                if (Random.value > 0.5)
+                {
+                    str += Japanase[Random.Range(0, Japanase.Length)];
+                }
+                else
+                {
+                    str += Ascii[Random.Range(0, Ascii.Length)];
+                }
+            }
             return str;
         }
 

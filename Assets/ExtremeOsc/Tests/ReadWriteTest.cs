@@ -13,7 +13,7 @@ namespace ExtremeOsc.Tests
         public void Write(byte[] buffer, object[] values)
         {
             var tagTypes = Arbitary.GetTagTypes(values);
-            Debug.Log(tagTypes);
+            Debug.Log($"ReadWriteTest::Write: {tagTypes}");
 
             int offsetTagTypes = 1;
             int offset = 0;
@@ -37,7 +37,6 @@ namespace ExtremeOsc.Tests
                         break;
                     case string @string:
                         OscWriter.WriteStringUtf8(buffer, @string, ref offset);
-                        Debug.Log(offset);
                         break;
                     case byte[] @byte:
                         OscWriter.WriteBlob(buffer, @byte, ref offset);
@@ -63,7 +62,7 @@ namespace ExtremeOsc.Tests
             int offset = 0;
 
             string tagTypes = OscReader.ReadString(buffer, ref offset);
-            Debug.Log(tagTypes);
+            Debug.Log($"ReadWriteTest::Write: {tagTypes}");
 
             var values = new List<object>();
 
@@ -82,7 +81,6 @@ namespace ExtremeOsc.Tests
                         break;
                     case TagType.String:
                         values.Add(OscReader.ReadString(buffer, ref offset));
-                        Debug.Log(offset);
                         break;
                     case TagType.Blob:
                         values.Add(OscReader.ReadBlob(buffer, ref offset));
@@ -294,7 +292,26 @@ namespace ExtremeOsc.Tests
                 var strings = new object[randomCount];
                 for (int j = 0; j < randomCount; j++)
                 {
-                    strings[j] = Arbitary.GetRandomString(UnityEngine.Random.Range(1, 256));
+                    strings[j] = Arbitary.GetRandomStringAscii(UnityEngine.Random.Range(1, 256));
+                }
+                Write(buffer, strings);
+                var readStrings = Read(buffer);
+                Assert.AreEqual(strings, readStrings);
+            }
+        }
+
+        [Test]
+        public void ReadWriteStringUtf8()
+        {
+            var buffer = new byte[4096];
+
+            for (int i = 0; i < 1000; i++)
+            {
+                int randomCount = UnityEngine.Random.Range(1, 10);
+                var strings = new object[randomCount];
+                for (int j = 0; j < randomCount; j++)
+                {
+                    strings[j] = Arbitary.GetRandomStringUtf8(UnityEngine.Random.Range(1, 256));
                 }
                 Write(buffer, strings);
                 var readStrings = Read(buffer);
@@ -305,11 +322,11 @@ namespace ExtremeOsc.Tests
         [Test]
         public void ReadWrite()
         {
-            var buffer = new byte[4096];
+            var buffer = new byte[4096*2];
 
             for (int i = 0; i < 1000; i++)
             {
-                int randomCount = UnityEngine.Random.Range(1, 5);
+                int randomCount = UnityEngine.Random.Range(1, 10);
                 string tagTypes = Arbitary.GetRandomTagTypes(randomCount);
 
                 var values = Arbitary.GetRandomObjects(randomCount);
