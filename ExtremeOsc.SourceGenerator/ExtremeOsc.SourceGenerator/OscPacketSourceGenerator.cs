@@ -19,24 +19,29 @@ namespace ExtremeOsc.SourceGenerator
         public const string TypeInt32 = "int";
         public const string TypeInt64 = "long";
         public const string TypeFloat = "float";
-        public const string TypeDouble = "double";
         public const string TypeString = "string";
-        public const string TypeBoolean = "bool";
         public const string TypeBlob = "byte[]";
+        public const string TypeDouble = "double";
         public const string TypeChar = "char";
-        public const string TypeByte = "byte";
+        public const string TypeTimetag = "DateTime";
+        public const string TypeBoolean = "bool";
+        public const string TypeNil = "Nil";
+        public const string TypeInfinitum = "Infinitum";
 
         // OscTags
-        public static readonly string TagInt32 = ((byte)('i')).ToString("X");
-        public static readonly string TagInt64 = ((byte)('h')).ToString("X");
-        public static readonly string TagFloat = ((byte)('f')).ToString("X");
-        public static readonly string TagDouble = ((byte)('d')).ToString("X");
-        public static readonly string TagString = ((byte)('s')).ToString("X");
-        public static readonly string TagBooleanTrue = ((byte)('T')).ToString("X");
-        public static readonly string TagBooleanFalse = ((byte)('F')).ToString("X");
-        public static readonly string TagBlob = ((byte)('b')).ToString("X");
-        public static readonly string TagChar = ((byte)('c')).ToString("X");
-        public static readonly string TagByte = ((byte)('B')).ToString("X");
+        public static readonly string TagIntro = ((byte)(',')).ToString("D");
+        public static readonly string TagInt32 = ((byte)('i')).ToString("D");
+        public static readonly string TagInt64 = ((byte)('h')).ToString("D");
+        public static readonly string TagFloat = ((byte)('f')).ToString("D");
+        public static readonly string TagDouble = ((byte)('d')).ToString("D");
+        public static readonly string TagString = ((byte)('s')).ToString("D");
+        public static readonly string TagBlob = ((byte)('b')).ToString("D");
+        public static readonly string TagChar = ((byte)('c')).ToString("D");
+        public static readonly string TagTimetag = ((byte)('t')).ToString("D");
+        public static readonly string TagBooleanTrue = ((byte)('T')).ToString("D");
+        public static readonly string TagBooleanFalse = ((byte)('F')).ToString("D");
+        public static readonly string TagNil = ((byte)('N')).ToString("D");
+        public static readonly string TagInfinitum = ((byte)('I')).ToString("D");
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -47,6 +52,7 @@ namespace ExtremeOsc.SourceGenerator
                 context.AddSource("OscCallbackAttribute.g.cs", AttributeGeneration.OscCallback);
                 context.AddSource("OscReceiverAttribute.g.cs", AttributeGeneration.OscReceiver);
                 context.AddSource("IOscPackable.g.cs", InterfaceGeneration.IOscPackable);
+                context.AddSource("IOscReceivable.g.cs", InterfaceGeneration.IOscReceivable);
             });
 
             var packableTypes = context.GetSourceWithAttribute(OscPackableAttributeName);
@@ -66,18 +72,70 @@ namespace ExtremeOsc.SourceGenerator
                             TypeInt32 => TagInt32,
                             TypeInt64 => TagInt64,
                             TypeFloat => TagFloat,
-                            TypeDouble => TagDouble,
                             TypeString => TagString,
-                            TypeBoolean => TagBooleanFalse, // default false
                             TypeBlob => TagBlob,
+                            TypeDouble => TagDouble,
                             TypeChar => TagChar,
-                            TypeByte => TagByte,
+                            TypeTimetag => TagTimetag,
+                            TypeBoolean => TagBooleanFalse,
+                            TypeNil => TagNil,
+                            TypeInfinitum => TagInfinitum,
                             _ => throw new NotSupportedTypeException($"Invalid type {typeSymbol.ToDisplayString()}")
                         };
                     }
                 ));
 
-            return $"{{ {arrayExpression} }}";
+            return $"{{ {TagIntro}, {arrayExpression} }}";
+        }
+
+        public static void WriteMember(CodeBuilder builder, (ITypeSymbol, ISymbol, int) member, string @offset, string @offsetTagType)
+        {
+            var (typeSymbol, symbol, _) = member;
+            var type = typeSymbol.ToDisplayString();
+            var @name = symbol.Name;
+
+            string line = type switch
+            {
+                TypeInt32 => $"OscWriter.WriteInt32(buffer, {@name}, ref {@offset});",
+                TypeInt64 => $"OscWriter.WriteInt64(buffer, {@name}, ref {@offset});",
+                TypeFloat => $"OscWriter.WriteFloat(buffer, {@name}, ref {@offset});",
+                TypeString => $"OscWriter.WriteStringUtf8(buffer, {@name}, ref {@offset});",
+                TypeBlob => $"OscWriter.WriteBlob(buffer, {@name}, ref {@offset});",
+                TypeDouble => $"OscWriter.WriteDouble(buffer, {@name}, ref {@offset});",
+                TypeChar => $"OscWriter.WriteChar(buffer, {@name}, ref {@offset});",
+                TypeTimetag => $"OscWriter.WriteTimetag(buffer, {@name}, ref {@offset});",
+                TypeBoolean => $"OscWriter.WriteBoolean(buffer, {@name}, {@offsetTagType});",
+                TypeNil => $"OscWriter.WriteNil(buffer, {@offsetTagType});",
+                TypeInfinitum => $"OscWriter.WriteInfinitum(buffer, {@offsetTagType});",
+                _ => throw new NotSupportedTypeException($"Invalid type {type}")
+            };
+
+            builder.AppendLine(line);
+            builder.AppendLine($"{@offsetTagType}++;");
+        }
+
+        public static void ReadMember(CodeBuilder builder, (ITypeSymbol, ISymbol, int) member, string @offset, string @offsetTagType)
+        {
+            var (typeSymbol, symbol, _) = member;
+            var type = typeSymbol.ToDisplayString();
+            var @name = symbol.Name;
+            string line = type switch
+            {
+                TypeInt32 => $"this.{@name} = OscReader.ReadInt32(buffer, ref {@offset});",
+                TypeInt64 => $"this.{@name} = OscReader.ReadInt64(buffer, ref {@offset});",
+                TypeFloat => $"this.{@name} = OscReader.ReadFloat(buffer, ref {@offset});",
+                TypeString => $"this.{@name} = OscReader.ReadString(buffer, ref {@offset});",
+                TypeBlob => $"this.{@name} = OscReader.ReadBlob(buffer, ref {@offset});",
+                TypeDouble => $"this.{@name} = OscReader.ReadDouble(buffer, ref {@offset});",
+                TypeChar => $"this.{@name} = OscReader.ReadChar(buffer, ref {@offset});",
+                TypeTimetag => $"this.{@name} = OscReader.ReadTimetag(buffer, ref {@offset});",
+                TypeBoolean => $"this.{@name} = OscReader.ReadBoolean(buffer, {@offsetTagType});",
+                TypeNil => $"this.{@name} = OscReader.ReadNil(buffer, {@offsetTagType});",
+                TypeInfinitum => $"this.{@name} = OscReader.ReadInfinitum(buffer, {@offsetTagType});",
+                _ => throw new NotSupportedTypeException($"Invalid type {type}")
+            };
+            builder.AppendLine(line);
+            builder.AppendLine($"{@offsetTagType}++;");
         }
 
         public static void EmitPackable(SourceProductionContext context, GeneratorAttributeSyntaxContext source)
@@ -116,7 +174,8 @@ namespace ExtremeOsc.SourceGenerator
                 return;
             }
 
-            Console.WriteLine("Memer");
+            // find namespace
+            var namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
 
             // find properties and fields
             var members = typeSymbol.FindMembers();
@@ -183,7 +242,7 @@ namespace ExtremeOsc.SourceGenerator
                 }
             }
 
-            string fullTypeName = typeSymbol.ToDisplayString();
+            string fullTypeName = typeSymbol.Name;
             string typeKindName = typeSymbol.TypeKind switch
             {
                 TypeKind.Class => "class",
@@ -199,20 +258,35 @@ namespace ExtremeOsc.SourceGenerator
             builder.AppendLine("using ExtremeOsc;");
             builder.AppendLine("");
 
-            using (var @class = builder.BeginScope($"partial {typeKindName} {fullTypeName} : IOscPackable"))
+            using (var @namespace = builder.BeginScope($"namespace {namespaceName}"))
             {
-                builder.AppendLine($"public static readonly byte[] TagTypes = new byte[] { MembersToArraySyntax(elements) };");
-                builder.AppendLine();
-
-                using (var @packMethod = builder.BeginScope("public void Pack (byte[] buffer, ref int offset)"))
+                using (var @class = builder.BeginScope($"partial {typeKindName} {fullTypeName} : IOscPackable"))
                 {
-                    builder.AppendLine("// pack");
-                }
-                builder.AppendLine();
+                    builder.AppendLine($"public static readonly byte[] TagTypes = new byte[] {MembersToArraySyntax(elements)};");
+                    builder.AppendLine();
 
-                using (var @unpackMethod = builder.BeginScope("public void Unpack (byte[] buffer, ref int offset)"))
-                {
-                    builder.AppendLine("// unpack");
+                    using (var @packMethod = builder.BeginScope("public void Pack (byte[] buffer, ref int offset)"))
+                    {
+                        builder.AppendLine("int offsetTagTypes = offset + 1;");
+                        builder.AppendLine("OscWriter.WriteString(buffer, TagTypes, ref offset);");
+
+                        for (int i = 0; i < elements.Count; i++)
+                        {
+                            WriteMember(builder, elements[i], "offset", "offsetTagTypes");
+                        }
+                    }
+                    builder.AppendLine();
+
+                    using (var @unpackMethod = builder.BeginScope("public void Unpack (byte[] buffer, ref int offset)"))
+                    {
+                        builder.AppendLine("int offsetTagTypes = offset + 1;");
+                        builder.AppendLine("OscReader.ReadString(buffer, ref offset);");
+
+                        for (int i = 0; i < elements.Count; i++)
+                        {
+                            ReadMember(builder, elements[i], "offset", "offsetTagTypes");
+                        }
+                    }
                 }
             }
 

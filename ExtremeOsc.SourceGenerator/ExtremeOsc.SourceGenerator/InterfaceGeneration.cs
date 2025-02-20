@@ -25,5 +25,22 @@ namespace ExtremeOsc.SourceGenerator
                 return builder.ToString();
             }
         }
+
+        public static string IOscReceivable
+        {
+            get
+            {
+                var builder = new CodeBuilder();
+                using(var @namespace = builder.BeginScope(Namespace))
+                {
+                    using (var @interface = builder.BeginScope("public interface IOscReceivable"))
+                    {
+                        builder.AppendLine("void ReceiveOscPacket(byte[] buffer);");
+                    }
+                }
+
+                return builder.ToString();
+            }
+        }
     }
 }

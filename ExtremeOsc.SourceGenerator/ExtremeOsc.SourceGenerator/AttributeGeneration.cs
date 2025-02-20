@@ -13,6 +13,7 @@ namespace ExtremeOsc.SourceGenerator
             get
             {
                 var builder = new CodeBuilder();
+                builder.AppendLine("using System;");
                 using (var @namespace = builder.BeginScope(Namespace))
                 {
                     builder.AppendLine("[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]");
@@ -36,6 +37,7 @@ namespace ExtremeOsc.SourceGenerator
             get
             {
                 var builder = new CodeBuilder();
+                builder.AppendLine("using System;");
                 using (var @namespace = builder.BeginScope(Namespace))
                 {
                     builder.AppendLine("[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]");
@@ -59,6 +61,7 @@ namespace ExtremeOsc.SourceGenerator
             get
             {
                 var builder = new CodeBuilder();
+                builder.AppendLine("using System;");
                 using (var @namespace = builder.BeginScope(Namespace))
                 {
                     builder.AppendLine("[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]");
@@ -77,6 +80,7 @@ namespace ExtremeOsc.SourceGenerator
             get
             {
                 var builder = new CodeBuilder();
+                builder.AppendLine("using System;");
                 using (var @namespace = builder.BeginScope(Namespace))
                 {
                     builder.AppendLine("[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]");
