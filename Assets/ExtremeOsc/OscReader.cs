@@ -1,203 +1,344 @@
 using System;
-using System.Runtime.InteropServices;
-using System.Text;
-using Unity.Collections;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ExtremeOsc
 {
-    using TimeTag = UInt64;
-
-    public static class OscReader
+    public partial class OscReader : System.IDisposable
     {
-        public static string ReadString(byte[] buffer, ref int offset)
-        {
-            // find null terminator
-            int length = 0;
-            int startOffset = offset;
+        public static readonly byte[] ZeroBytes = new byte[0];
 
-            for (int i = offset; i < buffer.Length; i++)
+        public string Address { get; private set; }
+        public string TagTypes => tagTypes;
+        public int Count => tagTypes.Length - 1;
+
+        private string tagTypes = null;
+        private int[] offsets = null;
+        private byte[] buffer = null;
+
+        public static OscReader Read(byte[] buffer)
+        {
+            var oscMessage = new OscReader();
+
+            int offset = 0;
+            int offsetTagTypes = 0;
+
+            oscMessage.Address = ReadString(buffer, ref offset);
+
+            // address + ","
+            offsetTagTypes = offset + 1;
+
+            string tagTypes = ReadString(buffer, ref offset);
+            oscMessage.tagTypes = tagTypes;
+            oscMessage.offsets = new int[oscMessage.Count];
+            oscMessage.buffer = buffer;
+
+            for (int i = 0; i < oscMessage.Count; i++)
             {
-                if (buffer[i] == 0)
+                oscMessage.offsets[i] = offset;
+                char tag = tagTypes[i + 1];
+
+                switch (tag)
                 {
-                    break;
+                    case TagType.Int32:
+                        offset += 4;
+                        break;
+                    case TagType.Int64:
+                        offset += 8;
+                        break;
+                    case TagType.Float:
+                        offset += 4;
+                        break;
+                    case TagType.String:
+                        offset += ReadStringLength(buffer, offset);
+                        break;
+                    case TagType.Symbol:
+                        offset += ReadStringLength(buffer, offset);
+                        break;
+                    case TagType.Blob:
+                        int byteLength = ReadInt32(buffer, ref offset);
+                        offset += Utils.AlignBytes4(byteLength + 1);
+                        break;
+                    case TagType.Double:
+                        offset += 8;
+                        break;
+                    case TagType.Color32:
+                        offset += 4;
+                        break;
+                    case TagType.Char:
+                        offset += 4;
+                        break;
+                    case TagType.TimeTag:
+                        offset += 8;
+                        break;
+                    case TagType.True:
+                    case TagType.False:
+                    case TagType.Nil:
+                    case TagType.Infinitum:
+                        oscMessage.offsets[i] = offsetTagTypes;
+                        break;
+                    case TagType.Midi:
+                        offset += 4;
+                        break;
                 }
-                length++;
+
+                offsetTagTypes++;
             }
 
-            string value = Encoding.UTF8.GetString(buffer.AsSpan(startOffset, length));
-
-            offset += Utils.AlignBytes4(length + 1);
-
-            return value;
+            return oscMessage;
         }
 
-        public static bool IsBundle(byte[] buffer, ref int offset)
+        public int GetAsInt32(int index, int defaultValue = 0)
         {
-            var value = buffer.AsSpan(offset, 8).SequenceEqual(TagType.BytesBundle);
-            offset += 8;
-
-            return value;
-        }
-
-        public static int ReadInt32(byte[] buffer, ref int offset)
-        {
-            // big endian -> little endian
-            int value = 0;
-
-            unsafe
+            if (tagTypes[index + 1] != TagType.Int32)
             {
-                byte* ptr = (byte*)&value;
-                for (int i = 0; i < 4; i++)
-                {
-                    ptr[3 - i] = buffer[offset + i];
-                }
+                Debug.LogWarning("Not Int32");
+                return defaultValue;
             }
 
-            offset += 4;
-
-            return value;
+            int offset = offsets[index];
+            return ReadInt32(this.buffer, ref offset);
         }
 
-        public static long ReadInt64(byte[] buffer, ref int offset)
+        public long GetAsInt64(int index, long defaultValue = 0)
         {
-            long value = 0;
-            for (int i = 0; i < 8; i++)
+            if (tagTypes[index + 1] != TagType.Int64)
             {
-                value = (value << 8) | buffer[offset + i];
+                Debug.LogWarning("Not Int64");
+                return defaultValue;
             }
 
-            offset += 8;
-            return value;
+            int offset = offsets[index];
+            return ReadInt64(this.buffer, ref offset);
         }
 
-        public static float ReadFloat(byte[] buffer, ref int offset)
+        public float GetAsFloat(int index, float defaultValue = 0)
         {
-            float value = 0;
-
-            unsafe
+            if (tagTypes[index + 1] != TagType.Float)
             {
-                byte* ptr = (byte*)&value;
-                ptr[0] = buffer[offset + 3];
-                ptr[1] = buffer[offset + 2];
-                ptr[2] = buffer[offset + 1];
-                ptr[3] = buffer[offset + 0];
+                Debug.LogWarning("Not Float");
+                return defaultValue;
             }
 
-            offset += 4;
-
-            return value;
+            int offset = offsets[index];
+            return ReadFloat(this.buffer, ref offset);
         }
 
-        public static byte[] ReadBlob(byte[] buffer, ref int offset)
+        public string GetAsString(int index, string defaultValue = "")
         {
-            int length = ReadInt32(buffer, ref offset);
-
-            byte[] value = buffer.AsSpan().Slice(offset, length).ToArray();
-            offset += Utils.AlignBytes4(length + 1);
-            
-            return value;
-        }
-
-        public static ulong ReadULong(byte[] buffer, ref int offset)
-        {
-            ulong value = 0;
-            for (int i = 0; i < 8; i++)
+            if (tagTypes[index + 1] != TagType.String)
             {
-                value = (value << 8) | buffer[offset + i];
+                Debug.LogWarning("Not String");
+                return defaultValue;
             }
 
-            offset += 8;
-
-            return value;
+            int offset = offsets[index];
+            return ReadString(this.buffer, ref offset);
         }
 
-        public static double ReadDouble(byte[] buffer, ref int offset)
+        public string GetAsSymbol(int index, string defaultValue = "")
         {
-            double value = 0;
-
-            unsafe
+            if(tagTypes[index + 1] != TagType.Symbol)
             {
-                byte* ptr = (byte*)&value;
-                for (int i = 0; i < 8; i++)
-                {
-                    ptr[i] = buffer[offset + (7 - i)];
-                }
+                Debug.LogWarning("Not Symbol");
+                return defaultValue;
             }
 
-            offset += 8;
-
-            return value;
+            int offset = offsets[index];
+            return ReadString(this.buffer, ref offset);
         }
 
-        public static Color32 ReadColor32(byte[] buffer, ref int offset)
+        public byte[] GetAsBlob(int index, byte[] defaultValue = null)
         {
-            byte r = buffer[offset + 0];
-            byte g = buffer[offset + 1];
-            byte b = buffer[offset + 2];
-            byte a = buffer[offset + 3];
+            if(tagTypes[index + 1] != TagType.Blob)
+            {
+                Debug.LogWarning("Not Blob");
+                return ZeroBytes;
+            }
 
-            offset += 4;
-
-            return new Color32(r, g, b, a);
+            int offset = offsets[index];
+            return ReadBlob(this.buffer, ref offset);
         }
 
-        public static char ReadChar(byte[] buffer, ref int offset)
+        public double GetAsDouble(int index, double defaultValue = 0)
         {
-            // 32bit -> 8bit
-            char value = (char)buffer[offset + 3];
-            offset += 4;
-            return value;
+            if(tagTypes[index + 1] != TagType.Double)
+            {
+                Debug.LogWarning("Not Double");
+                return defaultValue;
+            }
+
+            int offset = offsets[index];
+            return ReadDouble(this.buffer, ref offset);
         }
 
-        public static bool ReadBoolean(byte[] buffer, int offset)
+        public Color32 GetAsColor32(int index, Color defaultValue = default)
         {
-            if (buffer[offset] == TagType.True)
+            if (tagTypes[index + 1] != TagType.Color32)
+            {
+                Debug.LogWarning("Not Color32");
+                return defaultValue;
+            }
+            int offset = offsets[index];
+            return ReadColor32(this.buffer, ref offset);
+        }
+
+        public char GetAsChar(int index, char defaultValue = default)
+        {
+            if (tagTypes[index + 1] != TagType.Char)
+            {
+                Debug.LogWarning("Not Char");
+                return defaultValue;
+            }
+            int offset = offsets[index];
+            return ReadChar(this.buffer, ref offset);
+        }
+
+        public DateTime GetAsTimetag(int index, DateTime defaultValue = default)
+        {
+            if (tagTypes[index + 1] != TagType.TimeTag)
+            {
+                Debug.LogWarning("Not TimeTag");
+                return defaultValue;
+            }
+            int offset = offsets[index];
+            return ReadTimeTag(this.buffer, ref offset);
+        }
+
+        public ulong GetAsTimetagAsULong(int index, ulong defaultValue = default)
+        {
+            if (tagTypes[index + 1] != TagType.TimeTag)
+            {
+                Debug.LogWarning("Not TimeTag");
+                return defaultValue;
+            }
+            int offset = offsets[index];
+            return ReadTimeTagAsULong(this.buffer, ref offset);
+        }
+
+        public bool GetAsBoolean(int index, bool defaultValue = default)
+        {
+            var tagType = tagTypes[index + 1];
+
+            if (tagType == TagType.True)
             {
                 return true;
             }
-            else if (buffer[offset] == TagType.False)
+            else if (tagType == TagType.False)
             {
                 return false;
             }
             else
             {
-                throw new Exception("Invalid boolean tag");
+                Debug.LogWarning("Not Boolean");
+                return defaultValue;
             }
         }
 
-        public static Infinitum ReadInfinitum(byte[] buffer, int offset)
+        public Infinitum GetAsInfinitum(int index, Infinitum defaultValue = default)
         {
-            if(buffer[offset] == TagType.Infinitum)
+            if(tagTypes[index + 1] != TagType.Infinitum)
             {
-                return Infinitum.Value;
+                Debug.LogWarning("Not Infinitum");
+                return defaultValue;
             }
-            else
-            {
-                throw new Exception("Invalid infinitum tag");
-            }
+
+            return Infinitum.Value;
         }
 
-        public static Nil ReadNil(byte[] buffer, int offset)
+        public Nil GetAsNil(int index)
         {
-            if (buffer[offset] == TagType.Nil)
+            if(tagTypes[index + 1] != TagType.Nil)
             {
+                Debug.LogWarning("Not Nil");
                 return Nil.Value;
             }
-            else
-            {
-                throw new Exception("Invalid nil tag");
-            }
+
+            return Nil.Value;
         }
 
-        public static TimeTag ReadTimeTagAsULong(byte[] buffer, ref int offset) => ReadULong(buffer, ref offset);
-    
-        public static DateTime ReadTimeTag(byte[] buffer, ref int offset)
+        public int GetAsMidi(int index, int defaultValue = 0)
         {
-            var ntpTime = ReadULong(buffer, ref offset);
-            return Utils.NtpToDateTime(ntpTime);
+            if(tagTypes[index + 1] != TagType.Midi)
+            {
+                Debug.LogWarning("Not Midi");
+                return defaultValue;
+            }
+
+            int offset = offsets[index];
+            return ReadMidi(this.buffer, ref offset);
         }
 
-        public static int ReadMidi(byte[] buffer, ref int offset) => ReadInt32(buffer, ref offset);
+        public object[] GetAsObjects()
+        {
+            var objects = new object[tagTypes.Length - 1];
+
+            for (int i = 0; i < offsets.Length; i++)
+            {
+                var tagType = tagTypes[i + 1];
+                int offset = offsets[i];
+
+                switch (tagType)
+                {
+                    case TagType.Int32:
+                        objects[i] = ReadInt32(this.buffer, ref offset);
+                        break;
+                    case TagType.Int64:
+                        objects[i] = ReadInt64(this.buffer, ref offset);
+                        break;
+                    case TagType.Float:
+                        objects[i] = ReadFloat(this.buffer, ref offset);
+                        break;
+                    case TagType.String:
+                        objects[i] = ReadString(this.buffer, ref offset);
+                        break;
+                    case TagType.Symbol:
+                        objects[i] = ReadString(this.buffer, ref offset);
+                        break;
+                    case TagType.Blob:
+                        objects[i] = ReadBlob(this.buffer, ref offset);
+                        break;
+                    case TagType.Double:
+                        objects[i] = ReadDouble(this.buffer, ref offset);
+                        break;
+                    case TagType.Color32:
+                        objects[i] = ReadColor32(this.buffer, ref offset);
+                        break;
+                    case TagType.Char:
+                        objects[i] = ReadChar(this.buffer, ref offset);
+                        break;
+                    case TagType.TimeTag:
+                        //objects[i] = OscReader.ReadTimeTag(this.buffer, ref offset);
+                        objects[i] = ReadTimeTagAsULong(this.buffer, ref offset);
+                        break;
+                    case TagType.True:
+                        objects[i] = true;
+                        break;
+                    case TagType.False:
+                        objects[i] = false;
+                        break;
+                    case TagType.Nil:
+                        objects[i] = Nil.Value;
+                        break;
+                    case TagType.Infinitum:
+                        objects[i] = Infinitum.Value;
+                        break;
+                    case TagType.Midi:
+                        objects[i] = ReadMidi(this.buffer, ref offset);
+                        break;
+                }
+            }
+
+            return objects;
+        }
+
+        public void Dispose()
+        {
+            Address = null;
+            tagTypes = null;
+            offsets = null;
+            buffer = null;
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace ExtremeOsc.Tests
 {
     public class ReadWriteTest
     {
-        public void Write(byte[] buffer, string address, object[] values)
+        public static void Write(byte[] buffer, string address, object[] values)
         {
             var tagTypes = Arbitary.GetTagTypes(values);
             Debug.Log($"ReadWriteTest::Write: {address} {tagTypes}");
@@ -72,7 +72,7 @@ namespace ExtremeOsc.Tests
             }
         }
 
-        public (string, object[]) Read(byte[] buffer)
+        public static (string, object[]) Read(byte[] buffer)
         {
             int offsetTagTypes = 0;
             int offset = 0;

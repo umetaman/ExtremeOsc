@@ -7,8 +7,6 @@ namespace ExtremeOsc
 {
     public static class Utils
     {
-        //// 60 * 60 * 24 * 365 * 70
-        //public const uint Seconds70Years = 2207520000;
         // 2^32
         public const long NtpFractionalUnit = 4294967296;
 
@@ -28,6 +26,11 @@ namespace ExtremeOsc
 
         public static DateTime NtpToDateTime(UInt64 ntpTime)
         {
+            if(ntpTime == 0)
+            {
+                return DateTime.UtcNow;
+            }
+
             uint seconds = (uint)(ntpTime >> 32);
             uint fraction = (uint)(ntpTime & 0xFFFFFFFF);
 
@@ -35,12 +38,6 @@ namespace ExtremeOsc
 
             var time = Epoch;
             return time.AddSeconds(seconds).AddSeconds(fractionSeconds);
-        }
-
-        public static double NtpToFraction(UInt64 ntpTime)
-        {
-            UInt32 seconds = (UInt32)(ntpTime & 0x00000000FFFFFFFF);
-            return (double)seconds / (UInt32)0xFFFFFFFF;
         }
     }
 }
