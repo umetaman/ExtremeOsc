@@ -45,16 +45,6 @@ namespace ExtremeOsc.SourceGenerator
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterPostInitializationOutput((context) =>
-            {
-                context.AddSource("OscPackableAttribute.g.cs", AttributeGeneration.OscPackable);
-                context.AddSource("OscElementAtAttribute.g.cs", AttributeGeneration.OscElementAt);
-                context.AddSource("OscCallbackAttribute.g.cs", AttributeGeneration.OscCallback);
-                context.AddSource("OscReceiverAttribute.g.cs", AttributeGeneration.OscReceiver);
-                context.AddSource("IOscPackable.g.cs", InterfaceGeneration.IOscPackable);
-                context.AddSource("IOscReceivable.g.cs", InterfaceGeneration.IOscReceivable);
-            });
-
             var packableTypes = context.GetSourceWithAttribute(OscPackableAttributeName);
             context.RegisterSourceOutput(packableTypes, EmitPackable);
         }

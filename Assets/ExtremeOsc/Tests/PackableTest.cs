@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using ExtremeOsc;
 using ExtremeOsc.Annotations;
 using NUnit.Framework;
 

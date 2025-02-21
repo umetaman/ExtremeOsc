@@ -8,6 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\ExtremeOsc.Core\ExtremeOsc.Core.csproj" />
 		<ProjectReference Include="..\ExtremeOsc.SourceGenerator\ExtremeOsc.SourceGenerator.csproj">
 			<OutputItemType>Analyzer</OutputItemType>
 			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>

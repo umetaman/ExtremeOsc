@@ -13,7 +13,8 @@
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "ExtremeOsc.Core.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
