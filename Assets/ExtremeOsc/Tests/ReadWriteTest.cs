@@ -461,7 +461,7 @@ namespace ExtremeOsc.Tests
         }
 
         [Test]
-        public void ReadWriteTimetag()
+        public void ReadWriteTimeTag()
         {
             var buffer = new byte[4096];
 
@@ -489,12 +489,35 @@ namespace ExtremeOsc.Tests
         {
             for(int i = 0; i < 1000; i++)
             {
-                ulong a = Arbitary.GetRandomULong();
-                var unix_a = Utils.NtpToDateTime(a);
-                var ntp_a = Utils.DateTimeToNtp(unix_a);
-                var unix_b = Utils.NtpToDateTime(ntp_a);
+                {
+                    // create ntp
+                    ulong a = Arbitary.GetRandomULong();
 
-                Assert.AreEqual(unix_a, unix_b);
+                    // ntp -> datetime
+                    var datetime = TimeTag.NtpToDateTime(a);
+
+                    // datetime -> ntp
+                    var ntp_a = TimeTag.DateTimeToNtp(datetime);
+
+                    // ntp -> datetime
+                    var _datetime = TimeTag.NtpToDateTime(ntp_a);
+
+                    Assert.AreEqual(datetime, _datetime);
+                }
+
+                {
+                    // create datetime
+                    var datetime = Arbitary.GetRandomDateTime();
+                    // datetime -> ntp
+                    var ntp = TimeTag.DateTimeToNtp(datetime);
+                    // ntp -> datetime
+                    var _datetime = TimeTag.NtpToDateTime(ntp);
+
+                    var ntp_a = TimeTag.DateTimeToNtp(_datetime);
+
+                    Assert.AreEqual(ntp, ntp_a);
+                    Assert.IsTrue(TimeTag.EqualWithMiliseconds(datetime, _datetime));
+                }
             }
         }
 

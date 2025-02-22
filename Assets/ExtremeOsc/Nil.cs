@@ -22,5 +22,15 @@ namespace ExtremeOsc
         {
             return true;
         }
+
+        public static bool operator ==(Nil left, Nil right)
+        {
+            return true;
+        }
+
+        public static bool operator !=(Nil left, Nil right)
+        {
+            return false;
+        }
     }
 }

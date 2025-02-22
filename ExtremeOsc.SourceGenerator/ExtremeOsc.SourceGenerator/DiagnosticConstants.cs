@@ -48,5 +48,13 @@ namespace ExtremeOsc.SourceGenerator
             category: Category,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ExceptionError = new(
+            id: "EXTREMEOSC006",
+            title: "Exception error",
+            messageFormat: "Exception error {0}",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

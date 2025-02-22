@@ -1,9 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace ExtremeOsc.Tests
 {
+    using Random = UnityEngine.Random;
+
     public static class Arbitary
     {
         public static readonly char[] TagTypes = new char[]
@@ -242,16 +245,16 @@ namespace ExtremeOsc.Tests
         {
             ulong value = 0;
 
-            unsafe
-            {
-                byte* ptr = (byte*)&value;
-                for (int i = 0; i < 8; i++)
-                {
-                    ptr[7 - i] = (byte)Random.Range(0, 255);
-                }
-            }
+            var datetime = GetRandomDateTime();
+            value = (ulong)datetime.Ticks;
 
             return value;
+        }
+
+        public static DateTime GetRandomDateTime()
+        {
+            var randomTime = DateTime.Now.AddMilliseconds(Random.Range(-10000000, 10000000));
+            return randomTime;
         }
     }
 }

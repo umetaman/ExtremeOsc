@@ -111,7 +111,7 @@ namespace ExtremeOsc
                     case char @char:
                         WriteChar(buffer, @char, ref offset);
                         break;
-                    case DateTime timetag:
+                    case ulong timetag:
                         WriteTimeTag(buffer, timetag, ref offset);
                         break;
                     case bool @bool:
@@ -122,9 +122,6 @@ namespace ExtremeOsc
                         break;
                     case Infinitum _:
                         WriteInfinitum(buffer, offsetTagTypes);
-                        break;
-                    case ulong @ulong:
-                        WriteULong(buffer, @ulong, ref offset);
                         break;
                     default:
                         throw new Exception("Invalid type");

@@ -23,10 +23,11 @@ namespace ExtremeOsc.SourceGenerator
         public const string TypeBlob = "byte[]";
         public const string TypeDouble = "double";
         public const string TypeChar = "char";
-        public const string TypeTimetag = "DateTime";
+        public const string TypeTimeTag = "ulong";
         public const string TypeBoolean = "bool";
-        public const string TypeNil = "Nil";
-        public const string TypeInfinitum = "Infinitum";
+        public const string TypeNil = "ExtremeOsc.Nil";
+        public const string TypeInfinitum = "ExtremeOsc.Infinitum";
+        public const string TypeColor32 = "UnityEngine.Color32";
 
         // OscTags
         public static readonly string TagIntro = ((byte)(',')).ToString("D");
@@ -37,11 +38,12 @@ namespace ExtremeOsc.SourceGenerator
         public static readonly string TagString = ((byte)('s')).ToString("D");
         public static readonly string TagBlob = ((byte)('b')).ToString("D");
         public static readonly string TagChar = ((byte)('c')).ToString("D");
-        public static readonly string TagTimetag = ((byte)('t')).ToString("D");
+        public static readonly string TagTimeTag = ((byte)('t')).ToString("D");
         public static readonly string TagBooleanTrue = ((byte)('T')).ToString("D");
         public static readonly string TagBooleanFalse = ((byte)('F')).ToString("D");
         public static readonly string TagNil = ((byte)('N')).ToString("D");
         public static readonly string TagInfinitum = ((byte)('I')).ToString("D");
+        public static readonly string TagColor32 = ((byte)('r')).ToString("D");
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -66,10 +68,11 @@ namespace ExtremeOsc.SourceGenerator
                             TypeBlob => TagBlob,
                             TypeDouble => TagDouble,
                             TypeChar => TagChar,
-                            TypeTimetag => TagTimetag,
+                            TypeTimeTag => TagTimeTag,
                             TypeBoolean => TagBooleanFalse,
                             TypeNil => TagNil,
                             TypeInfinitum => TagInfinitum,
+                            TypeColor32 => TagColor32,
                             _ => throw new NotSupportedTypeException($"Invalid type {typeSymbol.ToDisplayString()}")
                         };
                     }
@@ -93,10 +96,11 @@ namespace ExtremeOsc.SourceGenerator
                 TypeBlob => $"OscWriter.WriteBlob(buffer, {@name}, ref {@offset});",
                 TypeDouble => $"OscWriter.WriteDouble(buffer, {@name}, ref {@offset});",
                 TypeChar => $"OscWriter.WriteChar(buffer, {@name}, ref {@offset});",
-                TypeTimetag => $"OscWriter.WriteTimetag(buffer, {@name}, ref {@offset});",
+                TypeTimeTag => $"OscWriter.WriteTimeTag(buffer, {@name}, ref {@offset});",
                 TypeBoolean => $"OscWriter.WriteBoolean(buffer, {@name}, {@offsetTagType});",
                 TypeNil => $"OscWriter.WriteNil(buffer, {@offsetTagType});",
                 TypeInfinitum => $"OscWriter.WriteInfinitum(buffer, {@offsetTagType});",
+                TypeColor32 => $"OscWriter.WriteColor32(buffer, {@name}, ref {@offset});",
                 _ => throw new NotSupportedTypeException($"Invalid type {type}")
             };
 
@@ -118,10 +122,11 @@ namespace ExtremeOsc.SourceGenerator
                 TypeBlob => $"this.{@name} = OscReader.ReadBlob(buffer, ref {@offset});",
                 TypeDouble => $"this.{@name} = OscReader.ReadDouble(buffer, ref {@offset});",
                 TypeChar => $"this.{@name} = OscReader.ReadChar(buffer, ref {@offset});",
-                TypeTimetag => $"this.{@name} = OscReader.ReadTimetag(buffer, ref {@offset});",
+                TypeTimeTag => $"this.{@name} = OscReader.ReadTimeTagAsULong(buffer, ref {@offset});",
                 TypeBoolean => $"this.{@name} = OscReader.ReadBoolean(buffer, {@offsetTagType});",
                 TypeNil => $"this.{@name} = OscReader.ReadNil(buffer, {@offsetTagType});",
                 TypeInfinitum => $"this.{@name} = OscReader.ReadInfinitum(buffer, {@offsetTagType});",
+                TypeColor32 => $"this.{@name} = OscReader.ReadColor32(buffer, ref {@offset});",
                 _ => throw new NotSupportedTypeException($"Invalid type {type}")
             };
             builder.AppendLine(line);
@@ -130,158 +135,187 @@ namespace ExtremeOsc.SourceGenerator
 
         public static void EmitPackable(SourceProductionContext context, GeneratorAttributeSyntaxContext source)
         {
-            // check syntax, symbol
-            var typeSymbol = source.TargetSymbol as INamedTypeSymbol;
-            var typeDeclaration = source.TargetNode as TypeDeclarationSyntax;
-
-            if (typeSymbol is null || typeDeclaration is null)
+            try
             {
-                return;
-            }
+                // check syntax, symbol
+                var typeSymbol = source.TargetSymbol as INamedTypeSymbol;
+                var typeDeclaration = source.TargetNode as TypeDeclarationSyntax;
 
-            // check partial, abstract, root, and packable
-            if (SyntaxCheck.IsPartial(typeDeclaration) == false)
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(DiagnosticConstants.MustBePartial, typeDeclaration.GetLocation(), typeSymbol.Name)
-                    );
-                return;
-            }
-
-            if(SyntaxCheck.IsAbstract(typeDeclaration))
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(DiagnosticConstants.AbstractNotSuppoted, typeDeclaration.GetLocation(), typeSymbol.Name)
-                    );
-                return;
-            }
-
-            if (SyntaxCheck.IsNested(typeDeclaration))
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(DiagnosticConstants.MustBeRoot, typeDeclaration.GetLocation(), typeSymbol.Name)
-                    );
-                return;
-            }
-
-            // find namespace
-            var namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
-
-            // find properties and fields
-            var members = typeSymbol.FindMembers();
-            var elements = new List<(ITypeSymbol, ISymbol, int)>();
-
-            foreach (var member in members)
-            {
-                var attributes = member.GetAttributes();
-
-                // filter OscElementAtAttribute
-                if (attributes.Length < 1)
+                if (typeSymbol is null || typeDeclaration is null)
                 {
-                    continue;
+                    return;
                 }
 
-                // check OscElementAtAttribute
-                var atAttribute = attributes
-                    .Where(attribute => attribute.AttributeClass?.ToDisplayString() == OscElementAtAtributeName)
-                    .FirstOrDefault();
-
-                // null check
-                if (atAttribute is null)
-                {
-                    continue;
-                }
-
-                // check Arguments
-                int? elementIndex = atAttribute.ConstructorArguments[0].Value as int?;
-                if(elementIndex is null)
-                {
-                    continue;
-                }
-
-                switch(member)
-                {
-                    case IFieldSymbol field:
-                        elements.Add((field.Type, field, elementIndex.Value));
-                        break;
-                    case IPropertySymbol property:
-                        elements.Add((property.Type, property, elementIndex.Value));
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            if(elements.Count < 1)
-            {
-                return;
-            }
-
-            // sort by index
-            elements.Sort((a, b) => a.Item3 - b.Item3);
-
-            // check index is sequencial
-            for(int i = 0; i < elements.Count; i++)
-            {
-                if (elements[i].Item3 != i)
+                // check partial, abstract, root, and packable
+                if (SyntaxCheck.IsPartial(typeDeclaration) == false)
                 {
                     context.ReportDiagnostic(
-                        Diagnostic.Create(DiagnosticConstants.ElementAtIndexIsNotSequencial, typeDeclaration.GetLocation())
+                        Diagnostic.Create(DiagnosticConstants.MustBePartial, typeDeclaration.GetLocation(), typeSymbol.Name)
                         );
                     return;
                 }
-            }
 
-            string fullTypeName = typeSymbol.Name;
-            string typeKindName = typeSymbol.TypeKind switch
-            {
-                TypeKind.Class => "class",
-                TypeKind.Struct => "struct",
-                _ => throw new NotSupportedException($"Invalid type {typeSymbol.TypeKind}")
-            };
-
-            var builder = new CodeBuilder();
-            builder.AppendLine("// <auto-generated>");
-            builder.AppendLine("using System;");
-            builder.AppendLine("using System.Buffers;");
-            builder.AppendLine("using System.Collections.Generic;");
-            builder.AppendLine("using ExtremeOsc;");
-            builder.AppendLine("");
-
-            using (var @namespace = builder.BeginScope($"namespace {namespaceName}"))
-            {
-                using (var @class = builder.BeginScope($"partial {typeKindName} {fullTypeName} : IOscPackable"))
+                if (SyntaxCheck.IsAbstract(typeDeclaration))
                 {
-                    builder.AppendLine($"public static readonly byte[] TagTypes = new byte[] {MembersToArraySyntax(elements)};");
-                    builder.AppendLine();
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(DiagnosticConstants.AbstractNotSuppoted, typeDeclaration.GetLocation(), typeSymbol.Name)
+                        );
+                    return;
+                }
 
-                    using (var @packMethod = builder.BeginScope("public void Pack (byte[] buffer, ref int offset)"))
+                if (SyntaxCheck.IsNested(typeDeclaration))
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(DiagnosticConstants.MustBeRoot, typeDeclaration.GetLocation(), typeSymbol.Name)
+                        );
+                    return;
+                }
+
+                // find namespace
+                var namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
+
+                // find properties and fields
+                var members = typeSymbol.FindMembers();
+                var elements = new List<(ITypeSymbol, ISymbol, int)>();
+
+                foreach (var member in members)
+                {
+                    var attributes = member.GetAttributes();
+
+                    // filter OscElementAtAttribute
+                    if (attributes.Length < 1)
                     {
-                        builder.AppendLine("int offsetTagTypes = offset + 1;");
-                        builder.AppendLine("OscWriter.WriteString(buffer, TagTypes, ref offset);");
-
-                        for (int i = 0; i < elements.Count; i++)
-                        {
-                            WriteMember(builder, elements[i], "offset", "offsetTagTypes");
-                        }
+                        continue;
                     }
-                    builder.AppendLine();
 
-                    using (var @unpackMethod = builder.BeginScope("public void Unpack (byte[] buffer, ref int offset)"))
+                    // check OscElementAtAttribute
+                    var atAttribute = attributes
+                        .Where(attribute => attribute.AttributeClass?.ToDisplayString() == OscElementAtAtributeName)
+                        .FirstOrDefault();
+
+                    // null check
+                    if (atAttribute is null)
                     {
-                        builder.AppendLine("int offsetTagTypes = offset + 1;");
-                        builder.AppendLine("OscReader.ReadString(buffer, ref offset);");
+                        continue;
+                    }
 
-                        for (int i = 0; i < elements.Count; i++)
+                    // check Arguments
+                    int? elementIndex = atAttribute.ConstructorArguments[0].Value as int?;
+                    if (elementIndex is null)
+                    {
+                        continue;
+                    }
+
+                    switch (member)
+                    {
+                        case IFieldSymbol field:
+                            elements.Add((field.Type, field, elementIndex.Value));
+                            break;
+                        case IPropertySymbol property:
+                            elements.Add((property.Type, property, elementIndex.Value));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (elements.Count < 1)
+                {
+                    return;
+                }
+
+                // sort by index
+                elements.Sort((a, b) => a.Item3 - b.Item3);
+
+                // check index is sequencial
+                for (int i = 0; i < elements.Count; i++)
+                {
+                    if (elements[i].Item3 != i)
+                    {
+                        context.ReportDiagnostic(
+                            Diagnostic.Create(DiagnosticConstants.ElementAtIndexIsNotSequencial, typeDeclaration.GetLocation())
+                            );
+                        return;
+                    }
+                }
+
+                string fullTypeName = typeSymbol.Name;
+                string typeKindName = typeSymbol.TypeKind switch
+                {
+                    TypeKind.Class => "class",
+                    TypeKind.Struct => "struct",
+                    _ => throw new NotSupportedException($"Invalid type {typeSymbol.TypeKind}")
+                };
+
+                var builder = new CodeBuilder();
+                builder.AppendLine("// <auto-generated>");
+                builder.AppendLine("using System;");
+                builder.AppendLine("using System.Buffers;");
+                builder.AppendLine("using System.Collections.Generic;");
+                builder.AppendLine("using ExtremeOsc;");
+                builder.AppendLine("");
+
+                using (var @namespace = builder.BeginScope($"namespace {namespaceName}"))
+                {
+                    using (var @class = builder.BeginScope($"partial {typeKindName} {fullTypeName} : IOscPackable"))
+                    {
+                        builder.AppendLine($"public static readonly byte[] TagTypes = new byte[] {MembersToArraySyntax(elements)};");
+                        builder.AppendLine();
+
+                        using (var @packMethod = builder.BeginScope("public void Pack (byte[] buffer, ref int offset)"))
                         {
-                            ReadMember(builder, elements[i], "offset", "offsetTagTypes");
+                            builder.AppendLine("int offsetTagTypes = offset + 1;");
+                            builder.AppendLine("OscWriter.WriteString(buffer, TagTypes, ref offset);");
+
+                            for (int i = 0; i < elements.Count; i++)
+                            {
+                                try
+                                {
+                                    WriteMember(builder, elements[i], "offset", "offsetTagTypes");
+                                }
+                                catch(NotSupportedException e)
+                                {
+                                    context.ReportDiagnostic(
+                                        Diagnostic.Create(DiagnosticConstants.NotSupportedType, typeDeclaration.GetLocation(), elements[i].Item1.ToDisplayString())
+                                        );
+                                    throw e;
+                                }
+                            }
+                        }
+                        builder.AppendLine();
+
+                        using (var @unpackMethod = builder.BeginScope("public void Unpack (byte[] buffer, ref int offset)"))
+                        {
+                            builder.AppendLine("int offsetTagTypes = offset + 1;");
+                            builder.AppendLine("OscReader.ReadString(buffer, ref offset);");
+
+                            for (int i = 0; i < elements.Count; i++)
+                            {
+                                try
+                                {
+                                    ReadMember(builder, elements[i], "offset", "offsetTagTypes");
+                                }
+                                catch (NotSupportedException e)
+                                {
+                                    context.ReportDiagnostic(
+                                        Diagnostic.Create(DiagnosticConstants.NotSupportedType, typeDeclaration.GetLocation(), elements[i].Item1.ToDisplayString())
+                                        );
+                                    throw e;
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            Console.WriteLine(builder.ToString());
-            context.AddSource($"{fullTypeName}.g.cs", builder.ToString());
+                Console.WriteLine(builder.ToString());
+                context.AddSource($"{fullTypeName}.g.cs", builder.ToString());
+            }
+            catch (Exception ex)
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(DiagnosticConstants.ExceptionError, Location.None, ex.Message)
+                    );
+            }
         }
     }
 }

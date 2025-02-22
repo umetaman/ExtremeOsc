@@ -195,7 +195,7 @@ namespace ExtremeOsc
             return ReadChar(this.buffer, ref offset);
         }
 
-        public DateTime GetAsTimetag(int index, DateTime defaultValue = default)
+        public DateTime GetAsTimeTag(int index, DateTime defaultValue = default)
         {
             if (tagTypes[index + 1] != TagType.TimeTag)
             {
@@ -203,7 +203,7 @@ namespace ExtremeOsc
                 return defaultValue;
             }
             int offset = offsets[index];
-            return ReadTimeTag(this.buffer, ref offset);
+            return ReadTimeTagAsDateTime(this.buffer, ref offset);
         }
 
         public ulong GetAsTimetagAsULong(int index, ulong defaultValue = default)

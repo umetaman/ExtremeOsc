@@ -206,10 +206,10 @@ namespace ExtremeOsc
 
         public static ulong ReadTimeTagAsULong(byte[] buffer, ref int offset) => ReadULong(buffer, ref offset);
     
-        public static DateTime ReadTimeTag(byte[] buffer, ref int offset)
+        public static DateTime ReadTimeTagAsDateTime(byte[] buffer, ref int offset)
         {
             var ntpTime = ReadULong(buffer, ref offset);
-            return Utils.NtpToDateTime(ntpTime);
+            return TimeTag.NtpToDateTime(ntpTime);
         }
 
         public static int ReadMidi(byte[] buffer, ref int offset) => ReadInt32(buffer, ref offset);

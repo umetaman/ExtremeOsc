@@ -22,5 +22,15 @@ namespace ExtremeOsc
         {
             return true;
         }
+
+        public static bool operator ==(Infinitum left, Infinitum right)
+        {
+            return true;
+        }
+
+        public static bool operator !=(Infinitum left, Infinitum right)
+        {
+            return false;
+        }
     }
 }
