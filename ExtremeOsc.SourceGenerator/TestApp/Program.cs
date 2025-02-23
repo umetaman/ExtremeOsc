@@ -1,6 +1,8 @@
 ﻿using ExtremeOsc.Annotations;
+using ExtremeOsc.Test;
 using System;
 using System.Drawing;
+using System.Security.Cryptography.X509Certificates;
 
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, World!");
@@ -26,6 +28,8 @@ namespace ExtremeOsc.Test
         public Byte[] BytesValue = new byte[0];
         [OscElementAt(7)]
         public Char CharValue;
+
+        public PackableTest() { }
     }
 }
 
@@ -42,6 +46,8 @@ namespace ExtremeOsc.Tests
         public int V2;
         [OscElementAt(3)]
         public int V3 { private set; get; }
+
+        public IntValue() { }
 
         public IntValue(int v0, int v1, int v2, int v3)
         {
@@ -107,6 +113,15 @@ namespace ExtremeOsc.Tests
         [OscElementAt(4)]
         public string V4 { get; set; }
 
+        public StringValue()
+        {
+            V0 = "";
+            V1 = "";
+            V2 = "";
+            V3 = "";
+            V4 = "";
+        }
+
         public StringValue(string v0, string v1, string v2, string v3, string v4)
         {
             V0 = v0;
@@ -139,6 +154,8 @@ namespace ExtremeOsc.Tests
         [OscElementAt(3)]
         public bool V3 { private set; get; }
 
+        public BooleanValue() { }
+
         public BooleanValue(bool v0, bool v1, bool v2, bool v3)
         {
             V0 = v0;
@@ -159,7 +176,7 @@ namespace ExtremeOsc.Tests
     }
 
     [OscPackable]
-    public partial class BlobValue
+    public partial struct BlobValue
     {
         [OscElementAt(0)]
         public byte[] V0 { get; set; }
@@ -206,6 +223,11 @@ namespace ExtremeOsc.Tests
         [OscElementAt(4)]
         public double V4 { get; set; }
 
+        public DoubleValue()
+        {
+
+        }
+
         public DoubleValue(double v0, double v1, double v2, double v3, double v4)
         {
             V0 = v0;
@@ -239,6 +261,12 @@ namespace ExtremeOsc.Tests
         public char V3 { private set; get; }
         [OscElementAt(4)]
         public char V4 { get; set; }
+
+        public CharValue()
+        {
+
+        }
+
         public CharValue(char v0, char v1, char v2, char v3, char v4)
         {
             V0 = v0;
@@ -247,6 +275,7 @@ namespace ExtremeOsc.Tests
             V3 = v3;
             V4 = v4;
         }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -272,6 +301,10 @@ namespace ExtremeOsc.Tests
         [OscElementAt(4)]
         public ulong V4 { get; set; }
 
+        public TimeTagValue()
+        {
+        }
+
         public TimeTagValue(ulong v0, ulong v1, ulong v2, ulong v3, ulong v4)
         {
             V0 = v0;
@@ -290,5 +323,87 @@ namespace ExtremeOsc.Tests
             TimeTagValue v = (TimeTagValue)obj;
             return V0 == v.V0 && V1 == v.V1 && V2 == v.V2 && V3 == v.V3 && V4 == v.V4;
         }
+    }
+
+    [OscReceiver]
+    public partial class TestReceiver
+    {
+        //[OscCallback("/noargument")]
+        //public void NoArgumentCallback()
+        //{
+        //    Console.WriteLine("NoArgumentCallback");
+        //}
+
+        //[OscCallback("/invalid/argument")]
+        //public void InvalidArgumentCallback(int value)
+        //{
+        //    Console.WriteLine($"InvalidArgumentCallback: {value}");
+        //}
+
+        [OscCallback("/warn/arguments")]
+        public void InvalidArgumentCallback(string value, int value2)
+        {
+            Console.WriteLine($"InvalidArgumentCallback: {value}, {value2}");
+        }
+
+        [OscCallback("/duplicated")]
+        public void DuplicatedCallback(string address)
+        {
+            Console.WriteLine($"DuplicatedCallback: {address}");
+        }
+
+        //[OscCallback("/duplicated")]
+        //public void DuplicatedCallback2(string address)
+        //{
+        //    Console.WriteLine($"DuplicatedCallback2: {address}");
+        //}
+
+        [OscCallback("/test")]
+        public void TestCallback(string address, PackableTest packableTest)
+        {
+            Console.WriteLine($"TestCallback: {packableTest.IntValue}");
+        }
+
+        [OscCallback("/test/ref")]
+        public void TestCallback(string address, ref PackableTest packableTest)
+        {
+            Console.WriteLine($"TestCallback: {packableTest.IntValue}");
+        }
+
+        [OscCallback("/test/in")]
+        public void TestCallbackIn(string address, in PackableTest packableTest)
+        {
+            Console.WriteLine($"TestCallback: {packableTest.IntValue}");
+        }
+
+        [OscCallback("/test2")]
+        public void TestCallback(string address, int value)
+        {
+            Console.WriteLine($"TestCallback: {value}");
+        }
+
+        [OscCallback("/test3/static")]
+        public static void TestStaticCallback(string address, int value)
+        {
+            Console.WriteLine($"TestStaticCallback: {value}");
+        }
+
+        [OscCallback("/test4/arguments")]
+        public void TestArgumentsCallback(string address, int value, float value2, string value3)
+        {
+            Console.WriteLine($"TestArgumentsCallback: {value}, {value2}, {value3}");
+        }
+
+        [OscCallback("/test5/arguments/objects")]
+        public void TestArgumentCallback(string address, object[] objects)
+        {
+            Console.WriteLine($"TestArgumentCallback: {objects.Length}");
+        }
+
+        //[OscCallback("/test5/objects")]
+        //public void TestObjectsCallback(string address, object[] objects)
+        //{
+        //    Console.WriteLine($"TestObjectsCallback: {objects.Length}");
+        //}
     }
 }

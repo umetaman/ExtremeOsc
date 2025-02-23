@@ -13,7 +13,6 @@ namespace ExtremeOsc
         {
             UInt64 seconds = (UInt32)(dateTime - Epoch).TotalSeconds;
             UInt64 fraction = (UInt32)(0xFFFFFFFF * ((double)dateTime.Millisecond / 1000));
-
             return (seconds << 32) + fraction;
         }
 

@@ -1,0 +1,16 @@
+{
+    "name": "ExtremeOsc.Example",
+    "rootNamespace": "ExtremeOsc.Example",
+    "references": [
+        "GUID:512c0a92e1525004a9e3429188170d58"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

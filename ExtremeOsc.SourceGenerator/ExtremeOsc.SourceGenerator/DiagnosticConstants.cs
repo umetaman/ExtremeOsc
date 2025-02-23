@@ -56,5 +56,53 @@ namespace ExtremeOsc.SourceGenerator
             category: Category,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor FirstArgumentMustBeString = new(
+            id: "EXTREMEOSC007",
+            title: "First argument must be string.",
+            messageFormat: "First argument must be string.",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor FirstArgumentMustBeStringNamedAddress = new(
+            id: "EXTREMEOSC007",
+            title: "First argument must be string named 'address'.",
+            messageFormat: "First argument must be string named 'address'.",
+            category: Category,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor DuplicatedAddress = new(
+            id: "EXTREMEOSC008",
+            title: "Duplicated address",
+            messageFormat: "Duplicated address {0}",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor NoArgument = new(
+            id: "EXTREMEOSC009",
+            title: "No argument",
+            messageFormat: "{0} has no argument.",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor DefaultConstructorNotImplemented = new(
+            id: "EXTREMEOSC010",
+            title: "Default constructor not implemented",
+            messageFormat: "{0} does not have default constructor.",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ArgumentNotPrimitive = new(
+            id: "EXTREMEOSC011",
+            title: "Argument is not primitive",
+            messageFormat: $"Argument not primitive. Please use {string.Join(", ", OscSyntax.TypeNames)}.",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

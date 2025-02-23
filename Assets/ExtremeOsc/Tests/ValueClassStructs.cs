@@ -19,6 +19,8 @@ namespace ExtremeOsc.Tests
         [OscElementAt(3)]
         public int V3 { private set; get; }
 
+        public IntValue() { }
+
         public IntValue(int v0, int v1, int v2, int v3)
         {
             V0 = v0;
@@ -49,6 +51,9 @@ namespace ExtremeOsc.Tests
         public long V2;
         [OscElementAt(3)]
         public long V3 { private set; get; }
+
+        public LongValue() { }
+
         public LongValue(long v0, long v1, long v2, long v3)
         {
             V0 = v0;
@@ -56,6 +61,7 @@ namespace ExtremeOsc.Tests
             V2 = v2;
             V3 = v3;
         }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -112,6 +118,8 @@ namespace ExtremeOsc.Tests
         [OscElementAt(4)]
         public string V4 { get; set; }
 
+        public StringValue() { }
+
         public StringValue(string v0, string v1, string v2, string v3, string v4)
         {
             V0 = v0;
@@ -143,6 +151,8 @@ namespace ExtremeOsc.Tests
         public bool V2;
         [OscElementAt(3)]
         public bool V3 { private set; get; }
+
+        public BooleanValue() { }
 
         public BooleanValue(bool v0, bool v1, bool v2, bool v3)
         {
@@ -176,6 +186,8 @@ namespace ExtremeOsc.Tests
         public byte[] V3 { private set; get; }
         [OscElementAt(4)]
         public byte[] V4 { get; set; }
+
+        public BlobValue() { }
 
         public BlobValue(byte[] v0, byte[] v1, byte[] v2, byte[] v3, byte[] v4)
         {
@@ -216,6 +228,8 @@ namespace ExtremeOsc.Tests
         [OscElementAt(4)]
         public double V4 { get; set; }
 
+        public DoubleValue() { }
+
         public DoubleValue(double v0, double v1, double v2, double v3, double v4)
         {
             V0 = v0;
@@ -249,6 +263,9 @@ namespace ExtremeOsc.Tests
         public Color32 V3 { private set; get; }
         [OscElementAt(4)]
         public Color32 V4 { get; set; }
+
+        public Color32Value() { }
+
         public Color32Value(Color32 v0, Color32 v1, Color32 v2, Color32 v3, Color32 v4)
         {
             V0 = v0;
@@ -257,6 +274,7 @@ namespace ExtremeOsc.Tests
             V3 = v3;
             V4 = v4;
         }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -281,6 +299,9 @@ namespace ExtremeOsc.Tests
         public char V3 { private set; get; }
         [OscElementAt(4)]
         public char V4 { get; set; }
+
+        public CharValue() { }
+
         public CharValue(char v0, char v1, char v2, char v3, char v4)
         {
             V0 = v0;
@@ -289,6 +310,7 @@ namespace ExtremeOsc.Tests
             V3 = v3;
             V4 = v4;
         }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -314,6 +336,8 @@ namespace ExtremeOsc.Tests
         [OscElementAt(4)]
         public ulong V4 { get; set; }
 
+        public TimeTagValue() { }
+
         public TimeTagValue(ulong v0, ulong v1, ulong v2, ulong v3, ulong v4)
         {
             V0 = v0;
@@ -336,7 +360,7 @@ namespace ExtremeOsc.Tests
     }
 
     [OscPackable]
-    public partial struct NilValue
+    public partial class NilValue
     {
         [OscElementAt(0)]
         public Nil V0 { get; set; }
@@ -348,6 +372,9 @@ namespace ExtremeOsc.Tests
         public Nil V3 { private set; get; }
         [OscElementAt(4)]
         public Nil V4 { get; set; }
+
+        public NilValue() { }
+
         public NilValue(Nil v0, Nil v1, Nil v2, Nil v3, Nil v4)
         {
             V0 = v0;
@@ -368,7 +395,7 @@ namespace ExtremeOsc.Tests
     }
 
     [OscPackable]
-    public partial struct InfinitumValue
+    public partial class InfinitumValue
     {
         [OscElementAt(0)]
         public Infinitum V0 { get; set; }
@@ -380,6 +407,8 @@ namespace ExtremeOsc.Tests
         public Infinitum V3 { private set; get; }
         [OscElementAt(4)]
         public Infinitum V4 { get; set; }
+
+        public InfinitumValue() { }
 
         public InfinitumValue(Infinitum v0, Infinitum v1, Infinitum v2, Infinitum v3, Infinitum v4)
         {
@@ -407,7 +436,7 @@ namespace ExtremeOsc.Tests
         [OscElementAt(0)]
         public int IntValue;
         [OscElementAt(1)]
-        public float LongValue;
+        public long LongValue;
         [OscElementAt(2)]
         public float FloatValue;
         [OscElementAt(3)]
@@ -428,6 +457,8 @@ namespace ExtremeOsc.Tests
         public Nil NilValue;
         [OscElementAt(11)]
         public Infinitum InfinitumValue;
+
+        public ClassValue() { }
 
         public override bool Equals(object obj)
         {
@@ -458,7 +489,7 @@ namespace ExtremeOsc.Tests
         [OscElementAt(0)]
         public int IntValue;
         [OscElementAt(1)]
-        public float LongValue;
+        public long LongValue;
         [OscElementAt(2)]
         public float FloatValue;
         [OscElementAt(3)]

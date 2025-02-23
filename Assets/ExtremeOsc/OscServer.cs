@@ -31,6 +31,7 @@ namespace ExtremeOsc
         public void Open(CancellationToken cancellationToken = default)
         {
             this.cancellationToken = cancellationToken;
+            Debug.Log("Open OscServer");
             Thread thread = new Thread(ThreadReceive);
             thread.Start();
         }
@@ -64,7 +65,7 @@ namespace ExtremeOsc
         {
             var socket = udpClient.Client;
             
-            while(this.isDisposed || this.cancellationToken.IsCancellationRequested)
+            while(this.isDisposed == false && this.cancellationToken.IsCancellationRequested == false)
             {
                 try
                 {

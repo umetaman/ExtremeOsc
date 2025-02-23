@@ -71,6 +71,20 @@ namespace ExtremeOsc
             return sb.ToString();
         }
 
+        public static void Write(byte[] buffer, string address)
+        {
+            int offset = 0;
+            WriteString(buffer, address, ref offset);
+            WriteString(buffer, ",", ref offset);
+        }
+
+        public static void Write<T>(byte[] buffer, string address, T value) where T : IOscPackable
+        {
+            int offset = 0;
+            WriteString(buffer, address, ref offset);
+            value.Pack(buffer, ref offset);
+        }
+
         public static void Write(byte[] buffer, string address, params object[] objects)
         {
             int offset = 0;

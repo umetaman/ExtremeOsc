@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.Text;
 
 namespace ExtremeOsc.SourceGenerator
@@ -19,12 +20,23 @@ namespace ExtremeOsc.SourceGenerator
 
         public static ImmutableArray<ISymbol> FindMembers(this INamedTypeSymbol symbol)
         {
-            return symbol.GetMembers().Where(member => member is IPropertySymbol || member is IFieldSymbol).ToImmutableArray();
+            // find assignable
+            return symbol.GetMembers()
+                .Where(member => member is IPropertySymbol || member is IFieldSymbol)
+                .Where(member => member.IsAbstract == false)
+                .Where(member => member.IsOverride == false)
+                .Where(member => member.IsStatic == false)
+                .ToImmutableArray();
         }
 
-        public static ImmutableArray<ISymbol> FindMethods(this INamedTypeSymbol symbol)
+        public static ImmutableArray<IMethodSymbol> FindMethods(this INamedTypeSymbol symbol)
         {
-            return symbol.GetMembers().Where(member => member is IMethodSymbol).ToImmutableArray();
+            // find callable
+            return symbol.GetMembers()
+                .OfType<IMethodSymbol>()
+                .Where(member => member.IsAbstract == false)
+                .Where(member => member.MethodKind == MethodKind.Ordinary)
+                .ToImmutableArray();
         }
     }
 }
