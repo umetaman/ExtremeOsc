@@ -10,6 +10,12 @@ namespace ExtremeOsc.Example
     {
         private OscServer server = null;
 
+        [OscCallback("/example/noargument")]
+        private void OnExampleNoArgument(string address)
+        {
+            Debug.Log(address);
+        }
+
         [OscCallback("/example")]
         private void OnExample(string address, ExampleData data)
         {

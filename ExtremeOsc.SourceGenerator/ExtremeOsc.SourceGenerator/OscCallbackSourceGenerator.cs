@@ -153,7 +153,6 @@ namespace ExtremeOsc.SourceGenerator
                                     continue;
                                 }
 
-
                                 foreach (var attribute in attributes)
                                 {
                                     string? address = attribute.ConstructorArguments[0].Value?.ToString();

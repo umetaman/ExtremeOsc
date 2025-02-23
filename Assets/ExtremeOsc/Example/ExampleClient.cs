@@ -30,7 +30,7 @@ namespace ExtremeOsc.Example
 
         private void Awake()
         {
-            client = new OscClient("127.0.0.1", 5555);
+            client = new OscClient("127.0.0.1", 5556);
         }
 
         private void Update()
@@ -56,6 +56,22 @@ namespace ExtremeOsc.Example
                     StringValue = "Hello, World!"
                 };
                 Debug.Log("Send: " + data.IntValue + ", " + data.FloatValue + ", " + data.StringValue);
+                client.Send("/example/arguments", data);
+            }
+
+            if(Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                client.Send("/example/noargument");
+            }
+
+            if(Input.GetKeyDown(KeyCode.RightShift))
+            {
+                var data = new object[]
+                {
+                    Random.Range(0, 100),
+                    Random.Range(0.0f, 1.0f),
+                    "Hello, World!"
+                };
                 client.Send("/example/arguments", data);
             }
         }

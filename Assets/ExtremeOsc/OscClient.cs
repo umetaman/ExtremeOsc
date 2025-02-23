@@ -38,6 +38,24 @@ namespace ExtremeOsc
             udpClient.Client.Send(buffer, 0, length, SocketFlags.None);
         }
 
+        public void Send(string address)
+        {
+            int offset = 0;
+            // Clear
+            buffer.AsSpan().Fill(0);
+            // Write address
+            OscWriter.WriteString(buffer, address, ref offset);
+            // Write TagType ,
+            OscWriter.WriteString(buffer, ",", ref offset);
+            udpClient.Client.Send(buffer, 0, offset, SocketFlags.None);
+        }
+
+        public void Send(string address, object[] values)
+        {
+            OscWriter.Write(buffer, address, values);
+            udpClient.Client.Send(buffer, 0, buffer.Length, SocketFlags.None);
+        }
+
         public void Dispose()
         {
             this.udpClient.Close();

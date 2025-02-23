@@ -328,11 +328,11 @@ namespace ExtremeOsc.Tests
     [OscReceiver]
     public partial class TestReceiver
     {
-        //[OscCallback("/noargument")]
-        //public void NoArgumentCallback()
-        //{
-        //    Console.WriteLine("NoArgumentCallback");
-        //}
+        [OscCallback("/noargument")]
+        public void NoArgumentCallback(string address)
+        {
+            Console.WriteLine("NoArgumentCallback");
+        }
 
         //[OscCallback("/invalid/argument")]
         //public void InvalidArgumentCallback(int value)

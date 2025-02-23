@@ -157,10 +157,16 @@ public partial class ExampleServer : MonoBehaviour
 {
     private OscServer server = null;
 
+    [OscCallback("/example/noargument")]
+    private void OnExampleNoArgument(string address)
+    {
+        // no argument
+    }
+
     [OscCallback("/example")]
     private void OnExample(string address, ExampleData data)
     {
-        // 
+        // Packable Class
     }
 
     [OscCallback("/example/ref")]
@@ -173,7 +179,7 @@ public partial class ExampleServer : MonoBehaviour
     [OscCallback("/example/arguments")]
     private void OnExampleArguments(string address, int intValue, float floatValue, string stringValue)
     {
-        // 
+        // primitive arguments
     }
 
     private void Awake()
