@@ -17,7 +17,8 @@ ExtremeOsc is C# implemetation of OSC (Open Sound Control) for Unity.
 | S | Symbol |
 | b | byte[] |
 | d | double |
-| c | UnityEngine.Color32 |
+| c | char |
+| r | UnityEngine.Color32 |
 | t | TimeTag (DateTime) |
 | T | bool (true) |
 | F | bool (false) |
