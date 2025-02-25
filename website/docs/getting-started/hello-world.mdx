@@ -1,0 +1,140 @@
+---
+title: Hello, World!
+sidebar_position: 1
+---
+
+## OSCの送信
+
+### クラス（構造体）の定義
+
+「クラス」と説明している箇所は構造体でも可能です。
+
+**1. OSCで送信したいデータをクラスとして定義します。定義したクラスには、`[OscPackable]`アトリビュートをつけてください。**
+   
+`[OscPackable]`を付与できるクラスの条件は次の通りです。
+- Rootなクラスである。何かのクラスの入れ子ではない。
+- 抽象クラスではない。
+- Partialなクラスである。
+
+**2. OSCで送信したいプロパティまたはフィールドに`[OscElementAt(int)]`アトリビュートをつけてください。これがデータの並び順になるので、必ず連番にします。**
+
+```csharp title="ExampleData.cs"
+using ExtremeOsc;
+
+// コードの自動生成のために、必ずpartialにします。
+// highlight-next-line
+[OscPackable]
+public partial class ExampleData
+{
+    // OscElementAtの引数は必ず連番にします。
+    // highlight-next-line
+    [OscElementAt(0)]
+    public int IntValue { get; set; }
+    // highlight-next-line
+    [OscElementAt(1)]
+    public float FloatValue { get; private set; }
+    // highlight-next-line
+    [OscElementAt(2)]
+    public string StringValue;
+
+    public ExampleData()
+    {
+        IntValue = 0;
+        FloatValue = 0.0f;
+        StringValue = string.Empty;
+    }
+}
+```
+
+### 送信する
+
+**3. `ExtremeOsc.OscClient`でインスタンスを送信します。**
+
+MonoBehaviourで使用する例
+
+```csharp title="ExampleClient.cs"
+public class ExampleClient : MonoBehaviour
+{
+    private OscClient client = null;
+
+    private void Awake()
+    {
+        client = new OscClient("127.0.0.1", 5555);
+    }
+
+    private void OnDestroy()
+    {
+        client?.Dispose();
+        client = null;
+    }
+
+    // OscPackableなクラスのインスタンスを送信する
+    private void SendExample()
+    {
+        var data = new ExampleData
+        {
+            IntValue = Random.Range(0, 256),
+            FloatValue = Random.Range(0.0f 1.0f),
+            StringValue = "Hello, Example!"
+        };
+        client.Send("/example", data);
+    }
+}
+```
+
+## OSCの受信
+
+### クラス（構造体）の定義
+
+**1. OSCを受信してコールバックするクラスに`[OscReceiver]`アトリビュートをつけてください。**
+
+`[OscReceiver]`を付与できるクラスの条件は次の通りです。
+- Rootなクラスである。何かのクラスの入れ子ではない。
+- 抽象クラスではない。
+- Partialなクラスである。
+
+**2. OSCを受信するために`ExtremeOsc.OscServer`を作成します。このOscServerにコールバックを実行したいクラスのインスタンスを登録します。**
+
+```csharp title="ExampleServer.cs"
+// コードの自動生成のために、必ずpartialにします。
+// highlight-next-line
+[OscReceiver]
+public partial class ExampleServer : MonoBehaviour
+{
+    private OscServer server = null;
+
+    private void Awake()
+    {
+        server = new OscServer(5555);
+        // このクラスのインスタンスでコールバックしたいのでRegister
+        // highlight-next-line
+        server.Register(this);
+        server.Open();
+    }
+
+    private void OnDestroy()
+    {
+        server.Unregister(this);
+        server?.Dispose();
+        server = null;
+    }
+}
+```
+
+### 受信する
+
+**3. コールバックする関数を定義し、`[OscCallback(address)]`アトリビュートをつけてください。必ず最初の引数は`string address`にしてください。**
+
+```csharp title="ExampleServer."
+[OscReceiver]
+public partial class ExampleServer : MonoBehaviour
+{
+    // highlight-start
+    [OscCallback("/example")]
+    private void OnExample(string address, ExampleData data)
+    {
+        
+    }
+    // highlight-end
+}
+```

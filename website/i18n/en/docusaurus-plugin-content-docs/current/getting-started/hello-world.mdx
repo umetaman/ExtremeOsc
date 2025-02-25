@@ -1,0 +1,139 @@
+---
+title: Hello, World!
+sidebar_position: 1
+---
+
+## Sending OSC
+
+### Defining Classes (Structs)
+
+The term "class" in this context can also refer to structs.
+
+**1. Define the data to be sent via OSC as a class. Attach the `[OscPackable]` attribute to the defined class.**
+   
+A class can be annotated with `[OscPackable]` if it meets the following conditions:
+- It is a root class (not nested within another class).
+- It is not an abstract class.
+- It is a partial class.
+
+**2. Add the `[OscElementAt(int)]` attribute to the properties or fields that should be sent via OSC. These attributes determine the order of data, so they must be sequential.**
+
+```csharp title="ExampleData.cs"
+using ExtremeOsc;
+
+// The class must be partial for automatic code generation.
+// highlight-next-line
+[OscPackable]
+public partial class ExampleData
+{
+    // The argument for OscElementAt must be sequential.
+    // highlight-next-line
+    [OscElementAt(0)]
+    public int IntValue { get; set; }
+    // highlight-next-line
+    [OscElementAt(1)]
+    public float FloatValue { get; private set; }
+    // highlight-next-line
+    [OscElementAt(2)]
+    public string StringValue;
+
+    public ExampleData()
+    {
+        IntValue = 0;
+        FloatValue = 0.0f;
+        StringValue = string.Empty;
+    }
+}
+```
+
+### Sending Data
+
+**3. Send an instance using `ExtremeOsc.OscClient`.**
+
+Example usage in a `MonoBehaviour`:
+
+```csharp title="ExampleClient.cs"
+public class ExampleClient : MonoBehaviour
+{
+    private OscClient client = null;
+
+    private void Awake()
+    {
+        client = new OscClient("127.0.0.1", 5555);
+    }
+
+    private void OnDestroy()
+    {
+        client?.Dispose();
+        client = null;
+    }
+
+    // Send an instance of an OscPackable class
+    private void SendExample()
+    {
+        var data = new ExampleData
+        {
+            IntValue = Random.Range(0, 256),
+            FloatValue = Random.Range(0.0f, 1.0f),
+            StringValue = "Hello, Example!"
+        };
+        client.Send("/example", data);
+    }
+}
+```
+
+## Receiving OSC
+
+### Defining Classes (Structs)
+
+**1. Attach the `[OscReceiver]` attribute to the class that will receive and handle OSC callbacks.**
+
+A class can be annotated with `[OscReceiver]` if it meets the following conditions:
+- It is a root class (not nested within another class).
+- It is not an abstract class.
+- It is a partial class.
+
+**2. Create an `ExtremeOsc.OscServer` instance to receive OSC messages. Register the class instance that will handle the callbacks with this server.**
+
+```csharp title="ExampleServer.cs"
+// The class must be partial for automatic code generation.
+// highlight-next-line
+[OscReceiver]
+public partial class ExampleServer : MonoBehaviour
+{
+    private OscServer server = null;
+
+    private void Awake()
+    {
+        server = new OscServer(5555);
+        // Register this class instance to handle callbacks
+        // highlight-next-line
+        server.Register(this);
+        server.Open();
+    }
+
+    private void OnDestroy()
+    {
+        server.Unregister(this);
+        server?.Dispose();
+        server = null;
+    }
+}
+```
+
+### Receiving Data
+
+**3. Define a callback function and attach the `[OscCallback(address)]` attribute. The first argument must always be `string address`.**
+
+```csharp title="ExampleServer.cs"
+[OscReceiver]
+public partial class ExampleServer : MonoBehaviour
+{
+    // highlight-start
+    [OscCallback("/example")]
+    private void OnExample(string address, ExampleData data)
+    {
+        
+    }
+    // highlight-end
+}
