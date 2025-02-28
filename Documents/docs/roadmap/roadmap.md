@@ -5,7 +5,7 @@ title: Roadmap
 description: ExtremeOsc is a C# implementation of OSC (Open Sound Control) for Unity.
 ---
 
-## Planned Features
+## To Do List
 
 - [ ] Support for TCP communication
 - [ ] Support for types included in UnityEngine

@@ -1,5 +1,5 @@
 ---
-title: Reading OSC
+title: Read OSC
 sidebar_position: 0
 ---
 

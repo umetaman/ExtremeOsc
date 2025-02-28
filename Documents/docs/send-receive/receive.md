@@ -1,5 +1,5 @@
 ---
-title: Receiving OSC (OscServer)
+title: Receive OSC (OscServer)
 sidebar_position: 1
 ---
 

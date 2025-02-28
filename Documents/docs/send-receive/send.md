@@ -1,5 +1,5 @@
 ---
-title: Sending OSC (OscClient)
+title: Send OSC (OscClient)
 sidebar_position: 0
 description: ExtremeOsc is a C# implementation of OSC (Open Sound Control) for Unity.
 ---

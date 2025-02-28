@@ -1,11 +1,11 @@
 {
   "title": {
-    "message": "ExtremeOsc",
+    "message": "⚡️ ExtremeOsc",
     "description": "The title in the navbar"
   },
-  "item.label.ドキュメント": {
-    "message": "ドキュメント",
-    "description": "Navbar item with label ドキュメント"
+  "item.label.Document": {
+    "message": "Document",
+    "description": "Navbar item with label Document"
   },
   "item.label.GitHub": {
     "message": "GitHub",

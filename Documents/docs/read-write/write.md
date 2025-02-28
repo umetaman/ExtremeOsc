@@ -1,5 +1,5 @@
 ---
-title: Writing OSC
+title: Write OSC
 sidebar_position: 0
 ---
 
