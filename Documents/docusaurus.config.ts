@@ -7,7 +7,6 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: '⚡️ ExtremeOsc',
   tagline: 'C# implemetation of OSC (Open Sound Control) for Unity.',
-  favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
   url: 'https://your-docusaurus-site.example.com',

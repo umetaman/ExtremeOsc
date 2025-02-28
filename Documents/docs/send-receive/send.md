@@ -33,7 +33,7 @@ var client = new OscClient("127.0.0.1", 5555);
 client.Send("/example", data);
 ```
 
-**⭕ Using `object[]` containing [supported types](/docs/about/#supported-types)**
+**⭕ Using `object[]` containing [supported types](/docs/#supported-types)**
 
 ```csharp
 var objects = new object[]
@@ -68,7 +68,7 @@ public class ParentClass
 }
 ```
 
-**❎ Using classes or types not included in [supported types](/docs/about/#supported-types)**
+**❎ Using classes or types not included in [supported types](/docs/#supported-types)**
 
 :::info
 Types included in UnityEngine are planned to be supported in the future.

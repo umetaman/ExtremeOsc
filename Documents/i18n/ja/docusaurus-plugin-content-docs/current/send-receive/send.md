@@ -33,7 +33,7 @@ var client = new OscClient("127.0.0.1", 5555);
 client.Send("/exmaple", data);
 ```
 
-**⭕ [サポートしている型](/docs/about/#サポートしている型)を含む`object[]`**
+**⭕ [サポートしている型](/docs/#サポートしている型)を含む`object[]`**
 
 ```csharp
 var objects = new object[]
@@ -68,7 +68,7 @@ public class ParentClass
 }
 ```
 
-**❎ [サポートしている型](/docs/about/#サポートしている型)にはないクラス・型**
+**❎ [サポートしている型](/docs/#サポートしている型)にはないクラス・型**
 
 :::info
 UnityEngineに含まれる型は、今後サポートする予定です。
