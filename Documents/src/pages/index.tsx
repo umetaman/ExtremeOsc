@@ -34,7 +34,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      description="C# implemetation of OSC (Open Sound Control) for Unity.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

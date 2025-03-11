@@ -9,7 +9,7 @@ const config: Config = {
   tagline: 'C# implemetation of OSC (Open Sound Control) for Unity.',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://umetaman.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/ExtremeOsc/',
@@ -54,7 +54,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/docusaurus-social-card.jpg',
+    image: "img/social-card.png",
     navbar: {
       title: '⚡️ ExtremeOsc',
       items: [
