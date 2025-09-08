@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,7 +31,6 @@ namespace ExtremeOsc
         public void Open(CancellationToken cancellationToken = default)
         {
             this.cancellationToken = cancellationToken;
-            Debug.Log("Open OscServer");
             Thread thread = new Thread(ThreadReceive);
             thread.Start();
         }

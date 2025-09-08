@@ -210,9 +210,9 @@ public partial class ExampleServer : MonoBehaviour
 
 ## TODO
 
+- [x] Documentation
 - [ ] Support TCP.
 - [ ] Support UnityEngine classes and structs.
-- [ ] Documentation
 
 ## References
 
