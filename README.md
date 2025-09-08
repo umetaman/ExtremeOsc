@@ -28,7 +28,17 @@ ExtremeOsc is C# implemetation of OSC (Open Sound Control) for Unity.
 
 ## Installation
 
-ExtremeOsc is still in preview. If you want to try it out, download the UnityPackage from Releases or clone the repository.
+### Install from git URL
+
+Add `https://github.com/umetaman/ExtremeOsc.git?path=Assets/ExtremeOsc` to Unity Package Manager.
+
+```
+https://github.com/umetaman/ExtremeOsc.git?path=Assets/ExtremeOsc
+```
+
+### Install from Unity Package.
+
+Download the UnityPackage from [Releases](https://github.com/umetaman/ExtremeOsc/releases) or clone the repository.
 
 ## Getting Started
 
