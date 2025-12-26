@@ -114,12 +114,12 @@ namespace ExtremeOsc.SourceGenerator
                         // recursive
                         using (var @ifBundle = builder.BeginScope("if (address == \"#bundle\")"))
                         {
-                            builder.AppendLine("ulong timestamp = OscReader.ReadTimeTagAsULong(buffer, ref offset)");
+                            builder.AppendLine("ulong bundleTimestamp = OscReader.ReadTimeTagAsULong(buffer, ref offset);");
 
                             using (var @whileBundle = builder.BeginScope("while (offset < buffer.Length)"))
                             {
                                 builder.AppendLine("int elementSize = OscReader.ReadInt32(buffer, ref offset);");
-                                builder.AppendLine("ReceiveOscPacket(buffer, ref offset, timestamp);");
+                                builder.AppendLine("ReceiveOscPacket(buffer, ref offset, bundleTimestamp);");
                             }
                             builder.AppendLine("return;");
                         }

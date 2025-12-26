@@ -45,8 +45,8 @@ namespace ExtremeOsc.SourceGenerator
             int endIndex = hasTimestamp ? methodSymbol.Parameters.Length - 1 : methodSymbol.Parameters.Length;
 
             return methodSymbol.Parameters
-                .Skip(startIndex - 1)
-                .Take(endIndex - startIndex + 1)
+                .Skip(startIndex)
+                .Take(endIndex - startIndex)
                 .Select((param, index) => (param.Type, (ISymbol)param, index));
         }
     }
