@@ -334,6 +334,12 @@ namespace ExtremeOsc.Tests
             Console.WriteLine("NoArgumentCallback");
         }
 
+        [OscCallback("/noargument/timestamp")]
+        public void NoArgumentTimestampCallback(string address, ulong timestamp)
+        {
+            Console.WriteLine($"NoArgumentTimestampCallback: {timestamp}");
+        }
+
         //[OscCallback("/invalid/argument")]
         //public void InvalidArgumentCallback(int value)
         //{
@@ -364,10 +370,22 @@ namespace ExtremeOsc.Tests
             Console.WriteLine($"TestCallback: {packableTest.IntValue}");
         }
 
+        [OscCallback("/test/timestamp")]
+        public void TestCallback(string address, PackableTest packableTest, ulong timestamp)
+        {
+            Console.WriteLine($"TestCallback: {packableTest.IntValue}, {timestamp}");
+        }
+
         [OscCallback("/test/ref")]
         public void TestCallback(string address, ref PackableTest packableTest)
         {
             Console.WriteLine($"TestCallback: {packableTest.IntValue}");
+        }
+
+        [OscCallback("/test/ref/timestamp")]
+        public void TestCallback(string address, ref PackableTest packableTest, ulong timestamp)
+        {
+            Console.WriteLine($"TestCallback: {packableTest.IntValue}, {timestamp}");
         }
 
         [OscCallback("/test/in")]
@@ -376,10 +394,22 @@ namespace ExtremeOsc.Tests
             Console.WriteLine($"TestCallback: {packableTest.IntValue}");
         }
 
+        [OscCallback("/test/in/timestamp")]
+        public void TestCallbackIn(string address, in PackableTest packableTest, ulong timestamp)
+        {
+            Console.WriteLine($"TestCallback: {packableTest.IntValue}, {timestamp}");
+        }
+
         [OscCallback("/test2")]
         public void TestCallback(string address, int value)
         {
             Console.WriteLine($"TestCallback: {value}");
+        }
+
+        [OscCallback("/test2/timestamp")]
+        public void TestTimestampCallback(string address, int value, ulong timestamp)
+        {
+            Console.WriteLine($"TestTimestampCallback: {value}, {timestamp}");
         }
 
         [OscCallback("/test3/static")]
@@ -388,16 +418,34 @@ namespace ExtremeOsc.Tests
             Console.WriteLine($"TestStaticCallback: {value}");
         }
 
+        [OscCallback("/test3/static/timestamp")]
+        public static void TestStaticTimestampCallback(string address, int value, ulong timestamp)
+        {
+            Console.WriteLine($"TestStaticTimestampCallback: {value}, {timestamp}");
+        }
+
         [OscCallback("/test4/arguments")]
         public void TestArgumentsCallback(string address, int value, float value2, string value3)
         {
             Console.WriteLine($"TestArgumentsCallback: {value}, {value2}, {value3}");
         }
 
+        [OscCallback("/test4/arguments/timestamp")]
+        public void TestArgumentsTimestampCallback(string address, int value, float value2, string value3, ulong timestamp)
+        {
+            Console.WriteLine($"TestArgumentsTimestampCallback: {value}, {value2}, {value3}, {timestamp}");
+        }
+
         [OscCallback("/test5/arguments/objects")]
         public void TestArgumentCallback(string address, object[] objects)
         {
             Console.WriteLine($"TestArgumentCallback: {objects.Length}");
+        }
+
+        [OscCallback("/test5/argument/object/timestamp")]
+        public void TestArgumentTimestampCallback(string address, object[] objects, ulong timestamp)
+        {
+            Console.WriteLine($"TestArgumentTimestampCallback: {objects.Length}, {timestamp}");
         }
 
         //[OscCallback("/test5/objects")]

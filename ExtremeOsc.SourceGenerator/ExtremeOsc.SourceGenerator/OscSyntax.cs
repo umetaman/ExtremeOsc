@@ -51,5 +51,7 @@ namespace ExtremeOsc.SourceGenerator
         public const char TagNil = 'N';
         public const char TagInfinitum = 'I';
         public const char TagColor32 = 'r';
+
+        public const string TimeTagImmediate = "1UL";
     }
 }

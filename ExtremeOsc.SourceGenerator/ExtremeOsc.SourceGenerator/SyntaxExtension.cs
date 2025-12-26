@@ -38,5 +38,16 @@ namespace ExtremeOsc.SourceGenerator
                 .Where(member => member.MethodKind == MethodKind.Ordinary)
                 .ToImmutableArray();
         }
+
+        public static IEnumerable<(ITypeSymbol type, ISymbol symbol, int index)> CollectPrimitiveParameters(this IMethodSymbol methodSymbol, bool hasTimestamp)
+        {
+            int startIndex = 1;
+            int endIndex = hasTimestamp ? methodSymbol.Parameters.Length - 1 : methodSymbol.Parameters.Length;
+
+            return methodSymbol.Parameters
+                .Skip(startIndex - 1)
+                .Take(endIndex - startIndex + 1)
+                .Select((param, index) => (param.Type, (ISymbol)param, index));
+        }
     }
 }
