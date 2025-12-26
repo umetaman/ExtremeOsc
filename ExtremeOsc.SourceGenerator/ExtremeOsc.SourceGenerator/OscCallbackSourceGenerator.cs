@@ -76,45 +76,55 @@ namespace ExtremeOsc.SourceGenerator
             {
                 using (var @class = builder.BeginScope($"partial {typeKindName} {fullTypeName} : {IOscReceivableName}"))
                 {
-                    using (var callback = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer)"))
+                    // find methods with OscCallbackAttribute
+                    var methods = typeSymbol.FindMethods();
+
+                    // check address duplication
+                    var callbackAttributes = methods
+                        .SelectMany(method => method.GetAttributes())
+                        .Where(attribute => attribute.AttributeClass?.ToDisplayString() == OscCallbackAttributeName);
+                    
+                    var addressSet = new HashSet<string>();
+                    foreach (var attribute in callbackAttributes)
+                    {
+                        string? address = attribute.ConstructorArguments[0].Value?.ToString();
+                        if (string.IsNullOrEmpty(address))
+                        {
+                            continue;
+                        }
+                        if (addressSet.Contains(address))
+                        {
+                            context.ReportDiagnostic(
+                                Diagnostic.Create(DiagnosticConstants.DuplicatedAddress, attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation(), address)
+                                );
+                            return;
+                        }
+                        else
+                        {
+                            addressSet.Add(address);
+                        }
+                    }
+                    addressSet.Clear();
+
+                    using (var @receiverBundle = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer, ref int offset, ulong timestamp = 1UL)"))
                     {
                         // address
-                        builder.AppendLine("int offset = 0;");
-                        builder.AppendLine($"string address = OscReader.ReadString(buffer, ref offset);");
-                        builder.AppendLine("int offsetTagTypes = offset + 1;");
+                        builder.AppendLine("string address = OscReader.ReadString(buffer, ref offset);");
 
-                        // find methods with OscCallbackAttribute
-                        var methods = typeSymbol.FindMethods();
-
-                        // check address duplication
-                        var callbackAttributes = methods
-                            .SelectMany(method => method.GetAttributes())
-                            .Where(attribute => attribute.AttributeClass?.ToDisplayString() == OscCallbackAttributeName);
-
-
-                        var addressSet = new HashSet<string>();
-                        foreach (var attribute in callbackAttributes)
+                        // recursive
+                        using (var @ifBundle = builder.BeginScope("if (address == \"#bundle\""))
                         {
-                            string? address = attribute.ConstructorArguments[0].Value?.ToString();
-                            if (string.IsNullOrEmpty(address))
+                            builder.AppendLine("ulong timestamp = OscReader.ReadTimeTagAsULong(buffer, ref offset)");
+
+                            using (var @whileBundle = builder.BeginScope("while (offset < buffer.Length)"))
                             {
-                                continue;
+                                builder.AppendLine("int elementSize = OscReader.ReadInt32(buffer, ref offset);");
+                                builder.AppendLine("ReceiveOscPacket(buffer, ref offset, timestamp);");
                             }
-                            if (addressSet.Contains(address))
-                            {
-                                context.ReportDiagnostic(
-                                    Diagnostic.Create(DiagnosticConstants.DuplicatedAddress, attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation(), address)
-                                    );
-                                return;
-                            }
-                            else
-                            {
-                                addressSet.Add(address);
-                            }
+                            builder.AppendLine("return;");
                         }
-                        addressSet.Clear();
 
-
+                        builder.AppendLine("int offsetTagTypes = offset + 1;");
                         using (var @switch = builder.BeginScope("switch (address)"))
                         {
                             foreach (var method in methods)
@@ -281,6 +291,12 @@ namespace ExtremeOsc.SourceGenerator
                                 }
                             }
                         }
+                    }
+
+                    using (var @receiver = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer)"))
+                    {
+                        builder.AppendLine("int offset = 0;");
+                        builder.AppendLine("ReceiveOscPacket(buffer, ref offset);");
                     }
 
                     foreach (var (name, parameter) in additionalFields)
