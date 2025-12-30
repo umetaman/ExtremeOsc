@@ -67,9 +67,22 @@ namespace ExtremeOsc.SourceGenerator
             };
         }
 
+        public static bool HasTimestamp(IMethodSymbol methodSymbol)
+        {
+            var secondParameter = methodSymbol.Parameters.ElementAtOrDefault(1);
+            if (secondParameter is null)
+            {
+                return false;
+            }
+            
+            return secondParameter.Type.ToDisplayString() == OscSyntax.TypeTimeTag
+                && secondParameter.Name == "timestamp";
+        }
+
         public static bool IsPrimitiveOnly(IMethodSymbol methodSymbol, bool hasTimestamp)
         {
-            bool isPrimitive = methodSymbol.Parameters.Take(hasTimestamp ? methodSymbol.Parameters.Length - 1 : methodSymbol.Parameters.Length)
+            bool isPrimitive = methodSymbol.Parameters
+                .Skip(hasTimestamp ? 2 : 1)
                 .All(p => IsPrimitive(p.Type));
 
             return isPrimitive && IsObjectArrayOnly(methodSymbol) == false;
@@ -77,36 +90,53 @@ namespace ExtremeOsc.SourceGenerator
 
         public static bool IsObjectArrayOnly(IMethodSymbol methodSymbol)
         {
-            return methodSymbol.Parameters[1].Type.ToDisplayString() == "object[]";
-        }
-
-        public static bool IsReaderOnly(IMethodSymbol methodSymbol)
-        {
-            return methodSymbol.Parameters[1].Type.ToDisplayString() == "ExtremeOsc.OscReader";
-        }
-
-        public static bool HasTimestamp(IMethodSymbol methodSymbol)
-        {
             var lastParameter = methodSymbol.Parameters.LastOrDefault();
-            if(lastParameter is null)
+            if (lastParameter is null)
             {
                 return false;
             }
 
-            return lastParameter.Type.ToDisplayString() == OscSyntax.TypeTimeTag
-                && lastParameter.Name == "timestamp";
+            return lastParameter.Type.ToDisplayString() == "object[]";
+        }
+
+        public static bool IsReaderOnly(IMethodSymbol methodSymbol)
+        {
+            var lastParameter = methodSymbol.Parameters.LastOrDefault();
+            if (lastParameter is null)
+            {
+                return false;
+            }
+
+            return lastParameter.Type.ToDisplayString() == "ExtremeOsc.OscReader";
         }
 
         public static bool IsNoArgument(IMethodSymbol methodSymbol, bool hasTimestamp)
         {
-            return hasTimestamp ? 
-                methodSymbol.Parameters.Length == 2 : methodSymbol.Parameters.Length == 1;
+            if (hasTimestamp)
+            {
+                var secondParameter = methodSymbol.Parameters.ElementAtOrDefault(1);
+                if (secondParameter is null)
+                {
+                    return false;
+                }
+                
+                if (secondParameter.Type.ToDisplayString() == "ulong" && secondParameter.Name == "timestamp")
+                {
+                    return methodSymbol.Parameters.Length == 2;
+                }
+                
+                return false;
+            }
+            else
+            {
+                return methodSymbol.Parameters.Length == 1;
+            }
         }
 
         public static bool IsPackableArgument(IMethodSymbol methodSymbol, bool hasTimestamp)
         {
-            return hasTimestamp ?
-                methodSymbol.Parameters.Length == 3 : methodSymbol.Parameters.Length == 2;
+            var firstParameter = methodSymbol.Parameters.ElementAtOrDefault(hasTimestamp ? 2 : 1);
+            return IsPackable(firstParameter?.Type);
         }
     }
 }

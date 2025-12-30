@@ -371,7 +371,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test/timestamp")]
-        public void TestCallback(string address, PackableTest packableTest, ulong timestamp)
+        public void TestCallback(string address, ulong timestamp, PackableTest packableTest)
         {
             Console.WriteLine($"TestCallback: {packableTest.IntValue}, {timestamp}");
         }
@@ -383,7 +383,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test/ref/timestamp")]
-        public void TestCallback(string address, ref PackableTest packableTest, ulong timestamp)
+        public void TestCallback(string address, ulong timestamp, ref PackableTest packableTest)
         {
             Console.WriteLine($"TestCallback: {packableTest.IntValue}, {timestamp}");
         }
@@ -395,7 +395,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test/in/timestamp")]
-        public void TestCallbackIn(string address, in PackableTest packableTest, ulong timestamp)
+        public void TestCallbackIn(string address, ulong timestamp, in PackableTest packableTest)
         {
             Console.WriteLine($"TestCallback: {packableTest.IntValue}, {timestamp}");
         }
@@ -407,7 +407,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test2/timestamp")]
-        public void TestTimestampCallback(string address, int value, ulong timestamp)
+        public void TestTimestampCallback(string address, ulong timestamp, int value)
         {
             Console.WriteLine($"TestTimestampCallback: {value}, {timestamp}");
         }
@@ -419,7 +419,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test3/static/timestamp")]
-        public static void TestStaticTimestampCallback(string address, int value, ulong timestamp)
+        public static void TestStaticTimestampCallback(string address, ulong timestamp, int value)
         {
             Console.WriteLine($"TestStaticTimestampCallback: {value}, {timestamp}");
         }
@@ -431,7 +431,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test4/arguments/timestamp")]
-        public void TestArgumentsTimestampCallback(string address, int value, float value2, string value3, ulong timestamp)
+        public void TestArgumentsTimestampCallback(string address, ulong timestamp, int value, float value2, string value3)
         {
             Console.WriteLine($"TestArgumentsTimestampCallback: {value}, {value2}, {value3}, {timestamp}");
         }
@@ -443,7 +443,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test5/argument/object/timestamp")]
-        public void TestArgumentTimestampCallback(string address, object[] objects, ulong timestamp)
+        public void TestArgumentTimestampCallback(string address, ulong timestamp, object[] objects)
         {
             Console.WriteLine($"TestArgumentTimestampCallback: {objects.Length}, {timestamp}");
         }
