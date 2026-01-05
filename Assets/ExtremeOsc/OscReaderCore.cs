@@ -46,11 +46,9 @@ namespace ExtremeOsc
             return value;
         }
 
-        public static bool IsBundle(byte[] buffer, ref int offset)
+        public static bool IsBundle(byte[] buffer, int offset)
         {
             var value = buffer.AsSpan(offset, 8).SequenceEqual(TagType.BytesBundle);
-            offset += 8;
-
             return value;
         }
 

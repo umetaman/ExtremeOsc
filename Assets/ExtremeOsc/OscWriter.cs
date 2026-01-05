@@ -78,6 +78,12 @@ namespace ExtremeOsc
             WriteString(buffer, ",", ref offset);
         }
 
+        public static void Write(byte[] buffer, string address, ref int offset)
+        {
+            WriteString(buffer, address, ref offset);
+            WriteString(buffer, ",", ref offset);
+        }
+
         public static void Write<T>(byte[] buffer, string address, T value) where T : IOscPackable
         {
             int offset = 0;
@@ -85,9 +91,20 @@ namespace ExtremeOsc
             value.Pack(buffer, ref offset);
         }
 
+        public static void Write<T>(byte[] buffer, string address, T value, ref int offset) where T : IOscPackable
+        {
+            WriteString(buffer, address, ref offset);
+            value.Pack(buffer, ref offset);
+        }
+
         public static void Write(byte[] buffer, string address, params object[] objects)
         {
             int offset = 0;
+            Write(buffer, address, objects, ref offset);
+        }
+
+        public static void Write(byte[] buffer, string address, object[] objects, ref int offset)
+        {
             int offsetTagTypes = 0;
 
             WriteString(buffer, address, ref offset);
