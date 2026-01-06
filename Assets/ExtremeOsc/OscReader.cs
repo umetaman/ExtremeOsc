@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,7 +18,7 @@ namespace ExtremeOsc
         private int[] offsets = null;
         private byte[] buffer = null;
 
-        public static void ReadBundle(byte[] buffer, int length, ref int offset, ulong timestamp, List<OscReader> readers)
+        public static void ReadBundle(byte[] buffer, int length, ref int offset, ulong defaultTimestamp, List<OscReader> readers)
         {
             int tempOffset = offset;
             string address = ReadString(buffer, ref tempOffset);
@@ -36,7 +36,7 @@ namespace ExtremeOsc
             }
             else
             {
-                readers.Add(Read(buffer, ref offset, timestamp));
+                readers.Add(Read(buffer, ref offset, defaultTimestamp));
             }
         }
 

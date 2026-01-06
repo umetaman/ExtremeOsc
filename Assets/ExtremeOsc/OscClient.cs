@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
@@ -54,6 +54,11 @@ namespace ExtremeOsc
         {
             OscWriter.Write(buffer, address, values);
             udpClient.Client.Send(buffer, 0, buffer.Length, SocketFlags.None);
+        }
+
+        public void Send(byte[] buffer, int length)
+        {
+            udpClient.Client.Send(buffer, 0, length, SocketFlags.None);
         }
 
         public void Dispose()
