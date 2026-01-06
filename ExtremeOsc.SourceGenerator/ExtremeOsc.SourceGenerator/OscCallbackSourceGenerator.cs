@@ -286,7 +286,24 @@ namespace ExtremeOsc.SourceGenerator
                                                 }
                                                 builder.AppendLine("break;");
                                             }
-                                            // skip argument analysis
+                                            continue;
+                                        }
+                                        else if(SyntaxCheck.IsPrimitiveOnly(method, hasTimestamp) == true)
+                                        {
+                                            var parameter = hasTimestamp ? method.Parameters[2] : method.Parameters[1];
+                                            using (var @case = builder.BeginScope($"case \"{address}\":"))
+                                            {
+                                                ReadWithDeclaration(builder, (parameter.Type, parameter, 0), "offset", "offsetTagTypes");
+                                                if (hasTimestamp)
+                                                {
+                                                    builder.AppendLine($"{method.Name}(address, timestamp, {parameter.Name});");
+                                                }
+                                                else
+                                                {
+                                                    builder.AppendLine($"{method.Name}(address, {parameter.Name});");
+                                                }
+                                                builder.AppendLine("break;");
+                                            }
                                             continue;
                                         }
 
