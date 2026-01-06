@@ -37,7 +37,7 @@ namespace ExtremeOsc.SourceGenerator
             if (SyntaxCheck.IsPartial(typeDeclaration) == false)
             {
                 context.ReportDiagnostic(
-                    Diagnostic.Create(DiagnosticConstants.MustBePartial, typeDeclaration.GetLocation(), typeSymbol.Name)
+                    Diagnostic.Create(DiagnosticConstants.ReceiverMustBePartial, typeDeclaration.GetLocation(), typeSymbol.Name)
                     );
                 return;
             }
@@ -53,7 +53,7 @@ namespace ExtremeOsc.SourceGenerator
             if (SyntaxCheck.IsNested(typeDeclaration))
             {
                 context.ReportDiagnostic(
-                    Diagnostic.Create(DiagnosticConstants.MustBeRoot, typeDeclaration.GetLocation(), typeSymbol.Name)
+                    Diagnostic.Create(DiagnosticConstants.ReceiverMustBeRoot, typeDeclaration.GetLocation(), typeSymbol.Name)
                     );
                 return;
             }
