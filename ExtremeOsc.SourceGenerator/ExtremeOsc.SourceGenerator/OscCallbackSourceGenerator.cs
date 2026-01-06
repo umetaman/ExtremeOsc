@@ -106,7 +106,7 @@ namespace ExtremeOsc.SourceGenerator
                     }
                     addressSet.Clear();
 
-                    using (var @receiverBundle = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer, ref int offset, ulong timestamp = 1UL)"))
+                    using (var @receiverBundle = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer, ulong timestamp, ref int offset)"))
                     {
                         // address
                         builder.AppendLine("string address = OscReader.ReadString(buffer, ref offset);");
@@ -119,7 +119,7 @@ namespace ExtremeOsc.SourceGenerator
                             using (var @whileBundle = builder.BeginScope("while (offset < buffer.Length)"))
                             {
                                 builder.AppendLine("int elementSize = OscReader.ReadInt32(buffer, ref offset);");
-                                builder.AppendLine("ReceiveOscPacket(buffer, ref offset, bundleTimestamp);");
+                                builder.AppendLine("ReceiveOscPacket(buffer, bundleTimestamp, ref offset);");
                             }
                             builder.AppendLine("return;");
                         }
@@ -191,7 +191,7 @@ namespace ExtremeOsc.SourceGenerator
                                         }
                                     }
                                     // Packable
-                                    else if (SyntaxCheck.IsPackableArgument(method, hasTimestamp))
+                                    else if (SyntaxCheck.IsSingleArgument(method, hasTimestamp))
                                     {
                                         var parameterType = hasTimestamp ? method.Parameters[2].Type : method.Parameters[1].Type;
 
@@ -334,7 +334,7 @@ namespace ExtremeOsc.SourceGenerator
                     using (var @receiver = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer)"))
                     {
                         builder.AppendLine("int offset = 0;");
-                        builder.AppendLine("ReceiveOscPacket(buffer, ref offset);");
+                        builder.AppendLine("ReceiveOscPacket(buffer, 1UL, ref offset);");
                     }
 
                     foreach (var (name, parameter) in additionalFields)
