@@ -76,45 +76,55 @@ namespace ExtremeOsc.SourceGenerator
             {
                 using (var @class = builder.BeginScope($"partial {typeKindName} {fullTypeName} : {IOscReceivableName}"))
                 {
-                    using (var callback = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer)"))
+                    // find methods with OscCallbackAttribute
+                    var methods = typeSymbol.FindMethods();
+
+                    // check address duplication
+                    var callbackAttributes = methods
+                        .SelectMany(method => method.GetAttributes())
+                        .Where(attribute => attribute.AttributeClass?.ToDisplayString() == OscCallbackAttributeName);
+
+                    var addressSet = new HashSet<string>();
+                    foreach (var attribute in callbackAttributes)
+                    {
+                        string? address = attribute.ConstructorArguments[0].Value?.ToString();
+                        if (string.IsNullOrEmpty(address))
+                        {
+                            continue;
+                        }
+                        if (addressSet.Contains(address))
+                        {
+                            context.ReportDiagnostic(
+                                Diagnostic.Create(DiagnosticConstants.DuplicatedAddress, attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation(), address)
+                                );
+                            return;
+                        }
+                        else
+                        {
+                            addressSet.Add(address);
+                        }
+                    }
+                    addressSet.Clear();
+
+                    using (var @receiverBundle = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer, ref int offset, ulong timestamp = 1UL)"))
                     {
                         // address
-                        builder.AppendLine("int offset = 0;");
-                        builder.AppendLine($"string address = OscReader.ReadString(buffer, ref offset);");
-                        builder.AppendLine("int offsetTagTypes = offset + 1;");
+                        builder.AppendLine("string address = OscReader.ReadString(buffer, ref offset);");
 
-                        // find methods with OscCallbackAttribute
-                        var methods = typeSymbol.FindMethods();
-
-                        // check address duplication
-                        var callbackAttributes = methods
-                            .SelectMany(method => method.GetAttributes())
-                            .Where(attribute => attribute.AttributeClass?.ToDisplayString() == OscCallbackAttributeName);
-
-
-                        var addressSet = new HashSet<string>();
-                        foreach (var attribute in callbackAttributes)
+                        // recursive
+                        using (var @ifBundle = builder.BeginScope("if (address == \"#bundle\")"))
                         {
-                            string? address = attribute.ConstructorArguments[0].Value?.ToString();
-                            if (string.IsNullOrEmpty(address))
+                            builder.AppendLine("ulong bundleTimestamp = OscReader.ReadTimeTagAsULong(buffer, ref offset);");
+
+                            using (var @whileBundle = builder.BeginScope("while (offset < buffer.Length)"))
                             {
-                                continue;
+                                builder.AppendLine("int elementSize = OscReader.ReadInt32(buffer, ref offset);");
+                                builder.AppendLine("ReceiveOscPacket(buffer, ref offset, bundleTimestamp);");
                             }
-                            if (addressSet.Contains(address))
-                            {
-                                context.ReportDiagnostic(
-                                    Diagnostic.Create(DiagnosticConstants.DuplicatedAddress, attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation(), address)
-                                    );
-                                return;
-                            }
-                            else
-                            {
-                                addressSet.Add(address);
-                            }
+                            builder.AppendLine("return;");
                         }
-                        addressSet.Clear();
 
-
+                        builder.AppendLine("int offsetTagTypes = offset + 1;");
                         using (var @switch = builder.BeginScope("switch (address)"))
                         {
                             foreach (var method in methods)
@@ -122,7 +132,7 @@ namespace ExtremeOsc.SourceGenerator
                                 var attributes = method.GetAttributes()
                                     .Where(method => method.AttributeClass?.ToDisplayString() == OscCallbackAttributeName);
 
-                                if(attributes.Any(attribute => attribute.AttributeClass?.ToDisplayString() == OscCallbackAttributeName) == false)
+                                if (attributes.Any(attribute => attribute.AttributeClass?.ToDisplayString() == OscCallbackAttributeName) == false)
                                 {
                                     continue;
                                 }
@@ -161,25 +171,35 @@ namespace ExtremeOsc.SourceGenerator
                                         continue;
                                     }
 
+                                    bool hasTimestamp = SyntaxCheck.HasTimestamp(method);
+
                                     // No Argument
-                                    if (method.Parameters.Length == 1)
+                                    if (SyntaxCheck.IsNoArgument(method, hasTimestamp))
                                     {
+                                        Console.WriteLine($@"NoArgument {method.Name} Processing");
                                         using (var @case = builder.BeginScope($"case \"{address}\":"))
                                         {
-                                            builder.AppendLine($"{method.Name}(address);");
-                                            builder.AppendLine("break;");
+                                            if (hasTimestamp)
+                                            {
+                                                builder.AppendLine($"{method.Name}(address, timestamp);");
+                                            }
+                                            else
+                                            {
+                                                builder.AppendLine($"{method.Name}(address);");
+                                                builder.AppendLine("break;");
+                                            }
                                         }
                                     }
                                     // Packable
-                                    else if (method.Parameters.Length == 2)
+                                    else if (SyntaxCheck.IsPackableArgument(method, hasTimestamp))
                                     {
-                                        var parameterType = method.Parameters[1].Type;
+                                        var parameterType = hasTimestamp ? method.Parameters[2].Type : method.Parameters[1].Type;
 
                                         // :(
                                         if (SyntaxCheck.IsPackable(parameterType) == false &&
-                                            SyntaxCheck.IsPrimitiveOnly(method) == false &&
+                                            SyntaxCheck.IsPrimitiveOnly(method, hasTimestamp) == false &&
                                             SyntaxCheck.IsObjectArrayOnly(method) == false &&
-                                            SyntaxCheck.IsReaderOnly(method) == false) 
+                                            SyntaxCheck.IsReaderOnly(method) == false)
                                         {
                                             context.ReportDiagnostic(
                                                 Diagnostic.Create(DiagnosticConstants.NotSupportedType, method.Locations[0], parameterType?.ToDisplayString())
@@ -193,7 +213,14 @@ namespace ExtremeOsc.SourceGenerator
                                             {
                                                 builder.AppendLine("var __reader = ExtremeOsc.OscReader.Read(buffer);");
                                                 builder.AppendLine("var __objects = __reader.GetAsObjects();");
-                                                builder.AppendLine($"{method.Name}(address, __objects);");
+                                                if (hasTimestamp)
+                                                {
+                                                    builder.AppendLine($"{method.Name}(address, timestamp, __objects);");
+                                                }
+                                                else
+                                                {
+                                                    builder.AppendLine($"{method.Name}(address, __objects);");
+                                                }
                                                 builder.AppendLine("__reader.Dispose();");
                                                 builder.AppendLine("break;");
                                             }
@@ -205,19 +232,26 @@ namespace ExtremeOsc.SourceGenerator
                                             using (var @case = builder.BeginScope($"case \"{address}\":"))
                                             {
                                                 builder.AppendLine("var __reader = ExtremeOsc.OscReader.Read(buffer);");
-                                                builder.AppendLine($"{method.Name}(address, __reader);");
+                                                if (hasTimestamp)
+                                                {
+                                                    builder.AppendLine($"{method.Name}(address, timestamp, __reader);");
+                                                }
+                                                else
+                                                {
+                                                    builder.AppendLine($"{method.Name}(address, __reader);");
+                                                }
                                                 builder.AppendLine("__reader.Dispose();");
                                                 builder.AppendLine("break;");
                                             }
                                             continue;
                                         }
                                         // Packable Type
-                                        else if (SyntaxCheck.IsPrimitiveOnly(method) == false)
+                                        else if (SyntaxCheck.IsPrimitiveOnly(method, hasTimestamp) == false)
                                         {
                                             string parameterTypeName = parameterType.ToDisplayString();
                                             using (var @case = builder.BeginScope($"case \"{address}\":"))
                                             {
-                                                var parameter = method.Parameters[1];
+                                                var parameter = hasTimestamp ? method.Parameters[2] :method.Parameters[1];
                                                 bool isRefOrIn = parameter.RefKind == RefKind.Ref || parameter.RefKind == RefKind.In;
 
                                                 if (isRefOrIn)
@@ -227,26 +261,40 @@ namespace ExtremeOsc.SourceGenerator
                                                     additionalFields.Add((variableName, parameter));
 
                                                     builder.AppendLine($"{variableName}.Unpack(buffer, ref offset);");
-                                                    builder.AppendLine($"{method.Name}(address, {refKeyword} {variableName});");
+                                                    if(hasTimestamp)
+                                                    {
+                                                        builder.AppendLine($"{method.Name}(address, timestamp, {refKeyword} {variableName});");
+                                                    }
+                                                    else
+                                                    {
+                                                        builder.AppendLine($"{method.Name}(address, {refKeyword} {variableName});");
+                                                    }
                                                 }
                                                 else
                                                 {
                                                     builder.AppendLine($"var __value = new {parameterTypeName}();");
                                                     builder.AppendLine($"__value.Unpack(buffer, ref offset);");
-                                                    builder.AppendLine($"{method.Name}(address, __value);");
+                                                    
+                                                    if(hasTimestamp)
+                                                    {
+                                                        builder.AppendLine($"{method.Name}(address, timestamp, __value);");
+                                                    }
+                                                    else
+                                                    {
+                                                        builder.AppendLine($"{method.Name}(address, __value);");
+                                                    }
                                                 }
                                                 builder.AppendLine("break;");
                                             }
                                             // skip argument analysis
                                             continue;
                                         }
-                                        
+
                                     }
-                                    
                                     // Arguments 
-                                    if (method.Parameters.Length >= 2)
+                                    else if (method.Parameters.Length >= 2)
                                     {
-                                        if(SyntaxCheck.IsPrimitiveOnly(method) == false)
+                                        if (SyntaxCheck.IsPrimitiveOnly(method, hasTimestamp) == false)
                                         {
                                             context.ReportDiagnostic(
                                                 Diagnostic.Create(DiagnosticConstants.ArgumentNotPrimitive, method.Locations[0], method.Name)
@@ -254,14 +302,7 @@ namespace ExtremeOsc.SourceGenerator
                                             continue;
                                         }
 
-                                        var parameters = method.Parameters
-                                            .Skip(1) // ignore string address
-                                            .Select((p, index) =>
-                                            {
-                                                ITypeSymbol t = p.Type;
-                                                ISymbol s = p;
-                                                return (t, s, index);
-                                            });
+                                        var parameters = method.CollectPrimitiveParameters(hasTimestamp);
 
                                         using (var @case = builder.BeginScope($"case \"{address}\":"))
                                         {
@@ -273,14 +314,27 @@ namespace ExtremeOsc.SourceGenerator
                                                 ReadWithDeclaration(builder, parameter, "offset", "offsetTagTypes");
                                             }
 
-                                            string arguments = string.Join(", ", parameters.Select(p => p.s.Name));
-                                            builder.AppendLine($"{method.Name}(address, {string.Join(", ", arguments)});");
+                                            string arguments = string.Join(", ", parameters.Select(p => p.symbol.Name));
+                                            if (hasTimestamp)
+                                            {
+                                                builder.AppendLine($"{method.Name}(address, timestamp, {string.Join(", ", arguments)});");
+                                            }
+                                            else
+                                            {
+                                                builder.AppendLine($"{method.Name}(address, {string.Join(", ", arguments)});");
+                                            }
                                             builder.AppendLine("break;");
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+
+                    using (var @receiver = builder.BeginScope($"public void ReceiveOscPacket (byte[] buffer)"))
+                    {
+                        builder.AppendLine("int offset = 0;");
+                        builder.AppendLine("ReceiveOscPacket(buffer, ref offset);");
                     }
 
                     foreach (var (name, parameter) in additionalFields)
@@ -291,7 +345,7 @@ namespace ExtremeOsc.SourceGenerator
             }
 
             Console.WriteLine(builder.ToString());
-            
+
             context.AddSource($"{fullTypeName}.OscCallback.g.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
         }
     }

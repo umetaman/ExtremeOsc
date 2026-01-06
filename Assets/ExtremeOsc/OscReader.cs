@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +9,7 @@ namespace ExtremeOsc
     {
         public static readonly byte[] ZeroBytes = new byte[0];
 
+        public ulong Timestamp { get; private set; }
         public string Address { get; private set; }
         public string TagTypes => tagTypes;
         public int Count => tagTypes.Length - 1;
@@ -17,11 +18,39 @@ namespace ExtremeOsc
         private int[] offsets = null;
         private byte[] buffer = null;
 
-        public static OscReader Read(byte[] buffer)
+        public static void ReadBundle(byte[] buffer, int length, ref int offset, ulong defaultTimestamp, List<OscReader> readers)
+        {
+            int tempOffset = offset;
+            string address = ReadString(buffer, ref tempOffset);
+
+            if (address == "#bundle")
+            {
+                offset = tempOffset;
+                ulong bundleTimestamp = ReadULong(buffer, ref offset);
+
+                while (offset < length)
+                {
+                    int elementSize = ReadInt32(buffer, ref offset);
+                    ReadBundle(buffer, elementSize, ref offset, bundleTimestamp, readers);
+                }
+            }
+            else
+            {
+                readers.Add(Read(buffer, ref offset, defaultTimestamp));
+            }
+        }
+
+        public static OscReader Read(byte[] buffer, ulong timestamp = default)
+        {
+            int offset = 0;
+            return Read(buffer, ref offset, timestamp);
+        }
+
+        public static OscReader Read(byte[] buffer, ref int offset, ulong timestamp = default)
         {
             var oscMessage = new OscReader();
+            oscMessage.Timestamp = timestamp;
 
-            int offset = 0;
             int offsetTagTypes = 0;
 
             oscMessage.Address = ReadString(buffer, ref offset);

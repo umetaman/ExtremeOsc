@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace ExtremeOsc.SourceGenerator
 {
@@ -26,7 +27,7 @@ namespace ExtremeOsc.SourceGenerator
 
         public static bool IsPackable(ITypeSymbol? typeSymbol)
         {
-            if(typeSymbol is null)
+            if (typeSymbol is null)
             {
                 return false;
             }
@@ -43,7 +44,7 @@ namespace ExtremeOsc.SourceGenerator
 
         public static bool IsPrimitive(ISymbol? typeSymbol)
         {
-            if(typeSymbol is null)
+            if (typeSymbol is null)
             {
                 return false;
             }
@@ -66,23 +67,76 @@ namespace ExtremeOsc.SourceGenerator
             };
         }
 
-        public static bool IsPrimitiveOnly(IMethodSymbol methodSymbol)
+        public static bool HasTimestamp(IMethodSymbol methodSymbol)
         {
-            return methodSymbol.Parameters.All(p =>
+            var secondParameter = methodSymbol.Parameters.ElementAtOrDefault(1);
+            if (secondParameter is null)
             {
-                return IsPrimitive(p.Type);
-            }) && IsObjectArrayOnly(methodSymbol) == false;
+                return false;
+            }
+            
+            return secondParameter.Type.ToDisplayString() == OscSyntax.TypeTimeTag
+                && secondParameter.Name == "timestamp";
+        }
+
+        public static bool IsPrimitiveOnly(IMethodSymbol methodSymbol, bool hasTimestamp)
+        {
+            bool isPrimitive = methodSymbol.Parameters
+                .Skip(hasTimestamp ? 2 : 1)
+                .All(p => IsPrimitive(p.Type));
+
+            return isPrimitive && IsObjectArrayOnly(methodSymbol) == false;
         }
 
         public static bool IsObjectArrayOnly(IMethodSymbol methodSymbol)
         {
-            Console.WriteLine(methodSymbol.Parameters[1].Type.ToDisplayString());
-            return methodSymbol.Parameters[1].Type.ToDisplayString() == "object[]";
+            var lastParameter = methodSymbol.Parameters.LastOrDefault();
+            if (lastParameter is null)
+            {
+                return false;
+            }
+
+            return lastParameter.Type.ToDisplayString() == "object[]";
         }
 
         public static bool IsReaderOnly(IMethodSymbol methodSymbol)
         {
-            return methodSymbol.Parameters[1].Type.ToDisplayString() == "ExtremeOsc.OscReader";
+            var lastParameter = methodSymbol.Parameters.LastOrDefault();
+            if (lastParameter is null)
+            {
+                return false;
+            }
+
+            return lastParameter.Type.ToDisplayString() == "ExtremeOsc.OscReader";
+        }
+
+        public static bool IsNoArgument(IMethodSymbol methodSymbol, bool hasTimestamp)
+        {
+            if (hasTimestamp)
+            {
+                var secondParameter = methodSymbol.Parameters.ElementAtOrDefault(1);
+                if (secondParameter is null)
+                {
+                    return false;
+                }
+                
+                if (secondParameter.Type.ToDisplayString() == "ulong" && secondParameter.Name == "timestamp")
+                {
+                    return methodSymbol.Parameters.Length == 2;
+                }
+                
+                return false;
+            }
+            else
+            {
+                return methodSymbol.Parameters.Length == 1;
+            }
+        }
+
+        public static bool IsPackableArgument(IMethodSymbol methodSymbol, bool hasTimestamp)
+        {
+            var firstParameter = methodSymbol.Parameters.ElementAtOrDefault(hasTimestamp ? 2 : 1);
+            return IsPackable(firstParameter?.Type);
         }
     }
 }

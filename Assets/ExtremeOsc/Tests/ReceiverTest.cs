@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using NUnit.Framework;
@@ -120,6 +120,29 @@ namespace ExtremeOsc.Tests
                 NilValue = reader.GetAsNil(10),
                 InfinitumValue = reader.GetAsInfinitum(11),
             };
+            OnTestClassValue?.Invoke(v);
+        }
+
+        [OscCallback("/test/reader/classvalue/timestamp")]
+        public void TestReaderClassValueTimestamp(string address, OscReader reader, ulong timestamp)
+        {
+            IsCalled = true;
+            var v = new ClassValue()
+            {
+                IntValue = reader.GetAsInt32(0),
+                LongValue = reader.GetAsInt64(1),
+                FloatValue = reader.GetAsFloat(2),
+                StringValue = reader.GetAsString(3),
+                BytesValue = reader.GetAsBlob(4),
+                DoubleValue = reader.GetAsDouble(5),
+                Color32Value = reader.GetAsColor32(6),
+                CharValue = reader.GetAsChar(7),
+                TimeTagValue = timestamp,
+                BooleanValue = reader.GetAsBoolean(8),
+                NilValue = reader.GetAsNil(9),
+                InfinitumValue = reader.GetAsInfinitum(10),
+            };
+            Assert.AreEqual(timestamp, 1UL);
             OnTestClassValue?.Invoke(v);
         }
 

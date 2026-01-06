@@ -25,7 +25,6 @@ namespace ExtremeOsc.SourceGenerator
                 .Where(member => member is IPropertySymbol || member is IFieldSymbol)
                 .Where(member => member.IsAbstract == false)
                 .Where(member => member.IsOverride == false)
-                .Where(member => member.IsStatic == false)
                 .ToImmutableArray();
         }
 
@@ -37,6 +36,17 @@ namespace ExtremeOsc.SourceGenerator
                 .Where(member => member.IsAbstract == false)
                 .Where(member => member.MethodKind == MethodKind.Ordinary)
                 .ToImmutableArray();
+        }
+
+        public static IEnumerable<(ITypeSymbol type, ISymbol symbol, int index)> CollectPrimitiveParameters(this IMethodSymbol methodSymbol, bool hasTimestamp)
+        {
+            int startIndex = hasTimestamp ? 2 : 1;
+            int endIndex = methodSymbol.Parameters.Length;
+
+            return methodSymbol.Parameters
+                .Skip(startIndex)
+                .Take(endIndex - startIndex)
+                .Select((param, index) => (param.Type, (ISymbol)param, index));
         }
     }
 }
