@@ -133,10 +133,11 @@ namespace ExtremeOsc.SourceGenerator
             }
         }
 
-        public static bool IsPackableArgument(IMethodSymbol methodSymbol, bool hasTimestamp)
+        public static bool IsSingleArgument(IMethodSymbol methodSymbol, bool hasTimestamp)
         {
-            var firstParameter = methodSymbol.Parameters.ElementAtOrDefault(hasTimestamp ? 2 : 1);
-            return IsPackable(firstParameter?.Type);
+            return hasTimestamp
+                ? methodSymbol.Parameters.Length == 3
+                : methodSymbol.Parameters.Length == 2;
         }
     }
 }
