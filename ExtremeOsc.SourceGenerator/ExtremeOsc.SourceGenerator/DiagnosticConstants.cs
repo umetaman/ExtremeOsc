@@ -9,7 +9,7 @@ namespace ExtremeOsc.SourceGenerator
     {
         public const string Category = "ExtremeOsc.SourceGenerator";
 
-        public static readonly DiagnosticDescriptor MustBePartial = new(
+        public static readonly DiagnosticDescriptor PackableMustBePartial = new(
             id: "EXTREMEOSC001",
             title: "OscPackable Object must be partial",
             messageFormat: "OscPackable {0} must be partial",
@@ -17,7 +17,7 @@ namespace ExtremeOsc.SourceGenerator
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MustBeRoot = new(
+        public static readonly DiagnosticDescriptor PackableMustBeRoot = new(
             id: "EXTREMEOSC002",
             title: "OscPackable Object must be root",
             messageFormat: "OscPackable {0} must be root",
@@ -101,6 +101,22 @@ namespace ExtremeOsc.SourceGenerator
             id: "EXTREMEOSC011",
             title: "Argument is not primitive",
             messageFormat: $"Argument not primitive. Please use {string.Join(", ", OscSyntax.TypeNames)}.",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ReceiverMustBePartial = new(
+            id: "EXTREMEOSC012",
+            title: "OscReceiver must be partial",
+            messageFormat: "OscReceiver {0} must be partial",
+            category: Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ReceiverMustBeRoot = new(
+            id: "EXTREMEOSC013",
+            title: "OscReceiver must be root",
+            messageFormat: "OscReceiver {0} must be root",
             category: Category,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
