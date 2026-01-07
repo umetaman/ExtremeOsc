@@ -291,8 +291,10 @@ namespace ExtremeOsc.SourceGenerator
                                         else if(SyntaxCheck.IsPrimitiveOnly(method, hasTimestamp) == true)
                                         {
                                             var parameter = hasTimestamp ? method.Parameters[2] : method.Parameters[1];
+
                                             using (var @case = builder.BeginScope($"case \"{address}\":"))
                                             {
+                                                builder.AppendLine("OscReader.ReadString(buffer, ref offset);");
                                                 ReadWithDeclaration(builder, (parameter.Type, parameter, 0), "offset", "offsetTagTypes");
                                                 if (hasTimestamp)
                                                 {
