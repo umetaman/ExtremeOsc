@@ -124,7 +124,7 @@ namespace ExtremeOsc.Tests
         }
 
         [OscCallback("/test/reader/classvalue/timestamp")]
-        public void TestReaderClassValueTimestamp(string address, OscReader reader, ulong timestamp)
+        public void TestReaderClassValueTimestamp(string address, ulong timestamp, OscReader reader)
         {
             IsCalled = true;
             var v = new ClassValue()
