@@ -1,11 +1,39 @@
 ﻿using ExtremeOsc.Annotations;
 using ExtremeOsc.Test;
+using ExtremeOsc.Tests;
+using ExtremeOsc;
 using System;
 using System.Drawing;
 using System.Security.Cryptography.X509Certificates;
 
 // See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+Console.WriteLine("Starting OSC Server...");
+using var server = new OscServer(5555);
+var receiver = new TestReceiver();
+server.Register(receiver);
+server.Open();
+
+Console.WriteLine("Starting OSC Client...");
+using var client = new OscClient("127.0.0.1", 5555);
+
+Console.WriteLine("Sending OSC Message /test...");
+var packableData = new PackableTest();
+packableData.IntValue = 12345;
+packableData.FloatValue = 54.321f;
+typeof(PackableTest).GetProperty("StringValue")?.GetSetMethod(true)?.Invoke(packableData, new object[] { "Hello, ExtremeOsc on .NET Core!" });
+
+client.Send("/test", packableData);
+
+Console.WriteLine("Sending OSC Message /noargument...");
+client.Send("/noargument");
+
+Console.WriteLine("Sending OSC Message /test2...");
+client.Send("/test2", new object[] { 999 });
+
+// Wait a bit for the UDP packet to be received
+System.Threading.Thread.Sleep(1000);
+
+Console.WriteLine("OSC test finished. Stopping server...");
 
 namespace ExtremeOsc.Test
 {

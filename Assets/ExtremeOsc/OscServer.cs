@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
-using Unity.Collections;
 using UnityEngine;
 using ExtremeOsc.Annotations;
 
@@ -72,7 +71,11 @@ namespace ExtremeOsc
                     var span = buffer.AsSpan();
                     span.Fill(0);
 
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER || UNITY_2021_3_OR_NEWER
                     int receivedSize = socket.Receive(span);
+#else
+                    int receivedSize = socket.Receive(buffer);
+#endif
 
                     if (receivedSize > 0)
                     {
