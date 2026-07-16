@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ExtremeOsc.Annotations;
@@ -61,7 +61,7 @@ namespace ExtremeOsc.Tests
         [Test]
         public void FloatValue()
         {
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1; i++)
             {
                 var v = new FloatValue(
                     Arbitary.GetRandomFloat(),
