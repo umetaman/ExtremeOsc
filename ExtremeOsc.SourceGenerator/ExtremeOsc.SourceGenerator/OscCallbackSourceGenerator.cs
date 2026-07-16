@@ -186,8 +186,8 @@ namespace ExtremeOsc.SourceGenerator
                                             else
                                             {
                                                 builder.AppendLine($"{method.Name}(address);");
-                                                builder.AppendLine("break;");
                                             }
+                                            builder.AppendLine("break;");
                                         }
                                     }
                                     // Packable

@@ -1,0 +1,216 @@
+{
+  "format": 1,
+  "restore": {
+    "/app/ExtremeOsc.Console/ExtremeOsc.Console.csproj": {}
+  },
+  "projects": {
+    "/app/ExtremeOsc.Console/ExtremeOsc.Console.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/app/ExtremeOsc.Console/ExtremeOsc.Console.csproj",
+        "projectName": "ExtremeOsc.Console",
+        "projectPath": "/app/ExtremeOsc.Console/ExtremeOsc.Console.csproj",
+        "packagesPath": "/home/jules/.nuget/packages/",
+        "outputPath": "/app/ExtremeOsc.Console/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/jules/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "/usr/lib/dotnet/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/app/ExtremeOsc.SourceGenerator/ExtremeOsc/ExtremeOsc.csproj": {
+                "projectPath": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc/ExtremeOsc.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[8.0.24, 8.0.24]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/app/ExtremeOsc.SourceGenerator/ExtremeOsc.Core/ExtremeOsc.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc.Core/ExtremeOsc.Core.csproj",
+        "projectName": "ExtremeOsc.Core",
+        "projectPath": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc.Core/ExtremeOsc.Core.csproj",
+        "packagesPath": "/home/jules/.nuget/packages/",
+        "outputPath": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc.Core/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/jules/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "/usr/lib/dotnet/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "targetAlias": "netstandard2.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "targetAlias": "netstandard2.0",
+          "dependencies": {
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/app/ExtremeOsc.SourceGenerator/ExtremeOsc/ExtremeOsc.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc/ExtremeOsc.csproj",
+        "projectName": "ExtremeOsc",
+        "projectPath": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc/ExtremeOsc.csproj",
+        "packagesPath": "/home/jules/.nuget/packages/",
+        "outputPath": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/jules/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "/usr/lib/dotnet/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "targetAlias": "netstandard2.0",
+            "projectReferences": {
+              "/app/ExtremeOsc.SourceGenerator/ExtremeOsc.Core/ExtremeOsc.Core.csproj": {
+                "projectPath": "/app/ExtremeOsc.SourceGenerator/ExtremeOsc.Core/ExtremeOsc.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "targetAlias": "netstandard2.0",
+          "dependencies": {
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            },
+            "System.Buffers": {
+              "target": "Package",
+              "version": "[4.5.1, )"
+            },
+            "System.Memory": {
+              "target": "Package",
+              "version": "[4.5.5, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

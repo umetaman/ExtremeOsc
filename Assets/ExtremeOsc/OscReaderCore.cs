@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Unity.Collections;
 using UnityEngine;
 
 namespace ExtremeOsc
@@ -39,7 +38,7 @@ namespace ExtremeOsc
                 length++;
             }
 
-            string value = Encoding.UTF8.GetString(buffer.AsSpan(startOffset, length));
+            string value = Encoding.UTF8.GetString(buffer, startOffset, length);
 
             offset += Utils.AlignBytes4(length + 1);
 
