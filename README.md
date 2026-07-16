@@ -210,6 +210,13 @@ public partial class ExampleServer : MonoBehaviour
 }
 ```
 
+## Console Application
+
+```shell
+$ cd ExtremeOsc.Console
+$ dotnet build
+```
+
 ## Testing
 
 - Pack/Unpack Test
